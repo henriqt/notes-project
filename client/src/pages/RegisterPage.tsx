@@ -1,0 +1,76 @@
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+export function RegisterPage() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const navigate = useNavigate()
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create account')
+      }
+
+      setSuccess(true)
+      setTimeout(() => navigate('/login'), 1500)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed')
+    }
+  }
+
+  return (
+    <div>
+      <h1>Create account</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={6}
+            required
+          />
+        </div>
+
+        {error && <p role="alert">{error}</p>}
+        {success && <p>Account created! Redirecting to sign in...</p>}
+
+        <button type="submit">Create account</button>
+      </form>
+
+      <p>
+        Already have an account? <Link to="/login">Sign in</Link>
+      </p>
+    </div>
+  )
+}
