@@ -1,0 +1,62 @@
+.editor-split {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* without this the pane grows to fit long unbroken text instead of wrapping */
+}
+
+.pane-header {
+  font-size: 0.85rem;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.editor-textarea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  padding: 8px;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* Wider than it looks so it's actually easy to grab, but the visible
+   line (the ::after) stays thin. Standard trick for drag handles. */
+.editor-divider {
+  width: 8px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  position: relative;
+  background: transparent;
+}
+
+.editor-divider::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: var(--border);
+}
+
+.editor-divider:hover::after {
+  background: var(--text);
+}

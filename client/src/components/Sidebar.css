@@ -1,0 +1,19 @@
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* scrolls on its own so a long list of notes doesn't push the page taller */
+.sidebar-notes-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { renderNoteHtml } from '../utils/markdown'
+import './NotePreview.css'
 
 interface NotePreviewProps {
   content: string

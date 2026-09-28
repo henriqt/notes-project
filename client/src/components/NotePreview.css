@@ -1,0 +1,15 @@
+.note-preview {
+  flex: 1;
+  min-width: 0; /* same fix as the editor pane: stop growing to fit long text */
+  min-height: 0;
+  overflow-y: auto; /* scrolls inside the pane instead of pushing the page taller */
+  padding: 8px;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  text-align: left;
+}
