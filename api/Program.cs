@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using NotesProjectAPI.Database;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.Configure<Microsoft.AspNetCore.Routing.RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
@@ -45,10 +46,13 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Register DatabaseService
 builder.Services.AddSingleton<DatabaseService>();
 
-// Configure JWT Authentication
+// Fail fast with a clear message instead of a NullReferenceException at startup
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+    throw new InvalidOperationException("Jwt:Key is missing or too short (use at least 32 characters).");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -61,17 +65,40 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+                Encoding.UTF8.GetBytes(jwtKey)
             )
         };
     });
+
+// Login/register limit: 10 requests per minute per IP
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { message = "Too many attempts. Try again in a minute." }, cancellationToken);
+    };
+
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
 
 // Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+        // Only the extension can call the API (its id is fixed by the key in manifest.config.ts)
+        policy.WithOrigins("chrome-extension://dkhdpbmchhgchkhmmkjjiejnjimncgcg")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -86,7 +113,6 @@ using (var scope = app.Services.CreateScope())
     await dbService.InitializeDatabaseAsync();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -95,14 +121,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Use CORS
 app.UseCors("AllowFrontend");
+
+// After CORS so 429 answers also carry the CORS headers
+app.UseRateLimiter();
 
 app.UseDefaultFiles(); // Serve index.html by default
 app.UseStaticFiles(); // enables wwwroot folder for static files
 
-app.UseAuthentication();  // Validates Token Before
-app.UseAuthorization();   // Verifies Permissions After
+// Authentication first, then authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

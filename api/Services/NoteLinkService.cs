@@ -5,8 +5,8 @@ namespace NotesProjectAPI.Services
 {
     public static class NoteLinkService
     {
-        // Resolves [[wikilinks]] found in a note's content and re-syncs NoteLinks for it.
-        // Unresolved titles get an empty note created automatically.
+        // Reads the [[wikilinks]] in the content and updates NoteLinks.
+        // Titles without a note get an empty note.
         public static async Task SyncLinksAsync(IDbConnection connection, int noteId, int userId, string content)
         {
             var titles = WikilinkParser.ExtractLinkedTitles(content);
@@ -20,7 +20,7 @@ namespace NotesProjectAPI.Services
                     targetIds.Add(targetId);
             }
 
-            // Full resync: delete old links from this note, insert current ones
+            // Delete the old links, insert the current ones
             await connection.ExecuteAsync(
                 "DELETE FROM NoteLinks WHERE SourceNoteId = @NoteId AND UserId = @UserId",
                 new { NoteId = noteId, UserId = userId });
@@ -35,7 +35,7 @@ namespace NotesProjectAPI.Services
             }
         }
 
-        // Finds a note by title (case-insensitive, scoped to the user) or creates an empty one
+        // Finds the note by title (per user, ignoring case) or creates an empty one
         private static async Task<int> ResolveOrCreateNoteAsync(IDbConnection connection, int userId, string title)
         {
             var existingId = await connection.QueryFirstOrDefaultAsync<int?>(

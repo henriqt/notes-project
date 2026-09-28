@@ -11,6 +11,7 @@ namespace NotesProjectAPI.Controllers
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
+    [RequestSizeLimit(1_000_000)] // 1 MB max body, the default is ~30 MB
     [Route("api/[controller]")]
     public class NotesController : ControllerBase
     {
@@ -83,7 +84,7 @@ namespace NotesProjectAPI.Controllers
             note.CreatedAt = now;
             note.UpdatedAt = now;
 
-            // Parse [[wikilinks]] and sync NoteLinks for this note
+            // Update NoteLinks from the [[wikilinks]]
             await NoteLinkService.SyncLinksAsync(connection, note.Id, userId, note.Content);
 
             return CreatedAtAction(nameof(GetNote), new { id = note.Id }, note);
@@ -121,7 +122,7 @@ namespace NotesProjectAPI.Controllers
             if (rowsAffected == 0)
                 return NotFound();
 
-            // Re-sync wikilinks now that content may have changed
+            // Content may have changed, update the links
             await NoteLinkService.SyncLinksAsync(connection, id, userId, note.Content);
 
             return NoContent();
@@ -134,7 +135,7 @@ namespace NotesProjectAPI.Controllers
             using var connection = _databaseService.CreateConnection();
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            // NoteLinks referencing this note are removed automatically via ON DELETE CASCADE
+            // NoteLinks are deleted by ON DELETE CASCADE
             var rowsAffected = await connection.ExecuteAsync(
                 "DELETE FROM Notes WHERE Id = @Id AND UserId = @UserId",
                 new { Id = id, UserId = userId });

@@ -9,7 +9,10 @@ namespace NotesProjectAPI.Services
             @"\[\[([^\[\]]+)\]\]",
             RegexOptions.Compiled);
 
-        // Extracts unique linked titles from Markdown content (does not resolve against the DB)
+        // Each link can create a note, so limit it per note
+        private const int MaxLinksPerNote = 50;
+
+        // Returns the unique titles from the Markdown (doesn't check the database)
         public static IEnumerable<string> ExtractLinkedTitles(string? content)
         {
             if (string.IsNullOrWhiteSpace(content))
@@ -18,8 +21,9 @@ namespace NotesProjectAPI.Services
             return WikilinkRegex
                 .Matches(content)
                 .Select(match => match.Groups[1].Value.Trim())
-                .Where(title => !string.IsNullOrWhiteSpace(title))
-                .Distinct(StringComparer.OrdinalIgnoreCase);
+                .Where(title => !string.IsNullOrWhiteSpace(title) && title.Length <= 200)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Take(MaxLinksPerNote);
         }
     }
 }

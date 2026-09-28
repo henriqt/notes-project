@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using NotesProjectAPI.Database;
 using NotesProjectAPI.Models;
@@ -13,6 +14,7 @@ namespace NotesProjectAPI.Controllers
     [ApiController]
     [Route("api/auth")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public class AuthController : ControllerBase
     {
         private readonly DatabaseService _databaseService;
@@ -24,20 +26,40 @@ namespace NotesProjectAPI.Controllers
             _configuration = configuration;
         }
 
+        private const int MinPasswordLength = 8;
+        private const int MaxPasswordLength = 72; // BCrypt only uses the first 72 bytes
+        private const int MaxEmailLength = 254;
+
+        // "Foo@Bar.com " and "foo@bar.com" are the same account
+        private static string NormalizeEmail(string? email)
+        {
+            return (email ?? string.Empty).Trim().ToLowerInvariant();
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
+            var email = NormalizeEmail(request.Email);
+
+            if (string.IsNullOrWhiteSpace(email) || email.Length > MaxEmailLength || !email.Contains('@'))
+                return BadRequest(new { message = "A valid email is required." });
+
+            // Checked here too because the API can be called directly
+            var password = request.Password ?? string.Empty;
+            if (password.Length < MinPasswordLength || Encoding.UTF8.GetByteCount(password) > MaxPasswordLength)
+                return BadRequest(new { message = $"Password must be between {MinPasswordLength} and {MaxPasswordLength} characters." });
+
             using var connection = _databaseService.CreateConnection();
 
-            // Verifies if Email already exists
+            // Case-insensitive, so older accounts still match
             var existing = await connection.QueryFirstOrDefaultAsync<User>(
-                "SELECT * FROM Users WHERE Email = @Email",
-                new { request.Email });
+                "SELECT * FROM Users WHERE LOWER(Email) = @Email",
+                new { Email = email });
 
             if (existing != null)
-                return BadRequest(new { message = "Email already registered" });
+                return Conflict(new { message = "An account with this email already exists." });
 
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
             var sql = @"
                 INSERT INTO Users (Email, PasswordHash, CreatedAt)
@@ -45,7 +67,7 @@ namespace NotesProjectAPI.Controllers
 
             await connection.ExecuteAsync(sql, new
             {
-                request.Email,
+                Email = email,
                 PasswordHash = passwordHash,
                 CreatedAt = DateTime.UtcNow
             });
@@ -56,11 +78,17 @@ namespace NotesProjectAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
+            var email = NormalizeEmail(request.Email);
+
+            // A null password would make BCrypt throw (500)
+            if (string.IsNullOrEmpty(request.Password))
+                return Unauthorized(new { message = "Invalid credentials" });
+
             using var connection = _databaseService.CreateConnection();
 
             var user = await connection.QueryFirstOrDefaultAsync<User>(
-                "SELECT * FROM Users WHERE Email = @Email",
-                new { request.Email });
+                "SELECT * FROM Users WHERE LOWER(Email) = @Email",
+                new { Email = email });
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return Unauthorized(new { message = "Invalid credentials" });

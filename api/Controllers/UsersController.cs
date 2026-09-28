@@ -20,9 +20,7 @@ namespace NotesProjectAPI.Controllers
         }
 
         // GET: api/Users/me
-        // Returns only the logged-in user's own data.
-        // No general listing endpoint — this app has no admin/roles system,
-        // so there is no legitimate reason for a user to see other users' data.
+        // Returns only the logged-in user's data (there is no listing: the app has no admin)
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
