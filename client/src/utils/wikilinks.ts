@@ -15,7 +15,9 @@ export function preprocessWikilinks(content: string): string {
 // Used to auto-create empty notes for unresolved [[links]] on save.
 export function extractLinkedTitles(content: string): string[] {
   const matches = [...content.matchAll(WIKILINK_REGEX)]
-  const titles = matches.map((match) => match[1].trim()).filter(Boolean)
+  const titles = matches
+    .map((match) => match[1].trim())
+    .filter((t) => t && t.length <= 200)
   return [...new Set(titles.map((t) => t.toLowerCase()))].map(
     (lower) => titles.find((t) => t.toLowerCase() === lower)!,
   )

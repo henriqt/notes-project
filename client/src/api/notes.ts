@@ -7,11 +7,15 @@ export async function getNotes(): Promise<Note[]> {
   return response.json()
 }
 
-export async function createNote(title: string, content: string): Promise<Note> {
+export async function createNote(
+  title: string,
+  content: string,
+  isBookmarked = false,
+): Promise<Note> {
   const response = await authFetch('/notes', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, content, isBookmarked: false }),
+    body: JSON.stringify({ title, content, isBookmarked }),
   })
   if (!response.ok) throw new Error('Failed to create note')
   return response.json()
@@ -28,7 +32,7 @@ export async function updateNote(note: Note): Promise<void> {
 
 export async function deleteNote(id: number): Promise<void> {
   const response = await authFetch(`/notes/${id}`, { method: 'DELETE' })
-  if (!response.ok) throw new Error('Failed to delete note')
+  if (!response.ok && response.status !== 404) throw new Error('Failed to delete note')
 }
 
 export async function toggleBookmark(id: number): Promise<Note> {

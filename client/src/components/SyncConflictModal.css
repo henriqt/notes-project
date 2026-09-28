@@ -1,0 +1,135 @@
+.sync-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.sync-modal {
+  width: 420px;
+  max-width: 90vw;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+
+.sync-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sync-modal-header h2 {
+  flex: 1;
+  font-size: 18px;
+  margin: 0;
+}
+
+.sync-modal-icon {
+  font-size: 18px;
+}
+
+.sync-modal-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.sync-modal-description {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.sync-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sync-modal-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-h);
+  font: inherit;
+}
+
+.sync-modal-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.sync-modal-radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sync-modal-option.selected .sync-modal-radio {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.sync-modal-icon-small {
+  font-size: 18px;
+}
+
+.sync-modal-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.9rem;
+}
+
+.sync-modal-option-text span {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.sync-modal-warning {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.sync-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sync-modal-continue {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.sync-modal-cancel {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 16px;
+  cursor: pointer;
+  color: var(--text-h);
+}

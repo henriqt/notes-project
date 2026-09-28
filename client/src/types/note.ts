@@ -6,4 +6,6 @@ export interface Note {
   createdAt: string
   updatedAt: string
   userId: number
+  serverId?: number
+  baseHash?: string
 }
