@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { API_BASE } from '../api/client'
 
 export function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -12,20 +13,23 @@ export function RegisterPage() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.')
       return
     }
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create account')
+        // The API answers { message } for known errors (e.g. 409 when the
+        // email already exists), so show that instead of a generic text.
+        const data = await response.json().catch(() => null)
+        throw new Error(data?.message ?? 'Failed to create account')
       }
 
       setSuccess(true)
@@ -57,7 +61,8 @@ export function RegisterPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            minLength={6}
+            minLength={8}
+            maxLength={72}
             required
           />
         </div>

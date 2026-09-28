@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { API_BASE } from '../api/client'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -15,13 +16,18 @@ export function LoginPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
 
       if (!response.ok) {
+        // Too many attempts (rate limit): the API sends a message for it
+        if (response.status === 429) {
+          const data = await response.json().catch(() => null)
+          throw new Error(data?.message ?? 'Too many attempts. Try again in a minute.')
+        }
         throw new Error('Invalid email or password')
       }
 
