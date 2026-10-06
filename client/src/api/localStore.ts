@@ -3,6 +3,7 @@ import type { Note } from '../types/note'
 const STORAGE_KEY = 'notes'
 const TOMBSTONES_KEY = 'deletedNotes'
 const SYNCED_USER_KEY = 'syncedUserId'
+const SYNC_ENABLED_KEY = 'syncEnabled'
 
 // Notes deleted locally after being synced. Without this, the sync would bring them back.
 export interface DeletedNote {
@@ -99,7 +100,17 @@ export async function setSyncedUserId(userId: string): Promise<void> {
   await chrome.storage.local.set({ [SYNCED_USER_KEY]: userId })
 }
 
+// "Keep syncing" toggle
+export async function getSyncEnabled(): Promise<boolean> {
+  const result = await chrome.storage.local.get({ [SYNC_ENABLED_KEY]: false as boolean })
+  return result[SYNC_ENABLED_KEY] as boolean
+}
+
+export async function saveSyncEnabled(enabled: boolean): Promise<void> {
+  await chrome.storage.local.set({ [SYNC_ENABLED_KEY]: enabled })
+}
+
 // Clears everything stored on this device. Synced notes stay on the server.
 export async function clearLocalData(): Promise<void> {
-  await chrome.storage.local.remove([STORAGE_KEY, TOMBSTONES_KEY, SYNCED_USER_KEY])
+  await chrome.storage.local.remove([STORAGE_KEY, TOMBSTONES_KEY, SYNCED_USER_KEY, SYNC_ENABLED_KEY])
 }

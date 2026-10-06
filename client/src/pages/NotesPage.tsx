@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   getLocalNotes,
@@ -7,16 +7,20 @@ import {
   deleteLocalNote,
   toggleLocalBookmark,
   clearLocalData,
+  getSyncEnabled,
+  saveSyncEnabled,
 } from '../api/localStore'
 import type { Note } from '../types/note'
 import { Sidebar } from '../components/Sidebar'
 import { NoteEditor } from '../components/NoteEditor'
 import { syncWikilinksOnSave } from '../utils/wikilinkSync'
 import { useAuth } from '../auth/useAuth'
+import { AUTH_EXPIRED_EVENT } from '../api/client'
 import {
   planSync,
   applySync,
   keepDeletedNotes,
+  sendOnlyPlan,
   countUnsyncedNotes,
   type SyncConflict,
   type SyncPlan,
@@ -24,9 +28,15 @@ import {
 import { SyncConflictModal } from '../components/SyncConflictModal'
 import { SyncDeleteConfirmModal } from '../components/SyncDeleteConfirmModal'
 import { LogoutModal } from '../components/LogoutModal'
+import { SyncToggle } from '../components/SyncToggle'
 
 // One status value instead of several booleans
-type SyncStatus = 'idle' | 'syncing' | 'done' | 'error'
+type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
+
+// Wait this long after a save before sending it to the server
+const AUTO_SYNC_DELAY_MS = 2000
+// While offline, run a full check again this often
+const OFFLINE_RETRY_MS = 15000
 
 // Titles shown in the "confirm deletions" modal
 interface PendingDeletions {
@@ -48,13 +58,21 @@ export function NotesPage() {
   const { isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle')
+  const [syncEnabled, setSyncEnabled] = useState(false)
   const [pendingConflicts, setPendingConflicts] = useState<SyncConflict[] | null>(null)
   const [pendingDeletions, setPendingDeletions] = useState<PendingDeletions | null>(null)
   const [logoutPrompt, setLogoutPrompt] = useState<{ unsyncedCount: number } | null>(null)
 
-  // Changes after every sync. It is part of the NoteEditor key, so the editor
+  // Timers and listeners read the ref, because their state would be stale
+  const syncEnabledRef = useRef(false)
+  // Only one sync at a time (full check or auto-send)
+  const busyRef = useRef(false)
+  const autoSyncTimer = useRef<number | undefined>(undefined)
+
+  // Changes after every full sync. It is part of the NoteEditor key, so the editor
   // reloads the note (it only reads the content when it mounts).
   // Not updatedAt: that changes on every autosave and would remount while typing.
+  // The auto-send never bumps it, or the editor would remount while typing.
   const [syncVersion, setSyncVersion] = useState(0)
 
   async function handleCreateNote() {
@@ -74,6 +92,8 @@ export function NotesPage() {
 
       const refreshed = await getLocalNotes()
       setNotes(refreshed)
+
+      scheduleAutoSync()
     } catch {
       setError('Failed to save note')
     }
@@ -92,7 +112,10 @@ export function NotesPage() {
   async function handleToggleBookmark(id: number) {
     try {
       const updated = await toggleLocalBookmark(id)
-      if (updated) setNotes((prev) => prev.map((n) => (n.id === id ? updated : n)))
+      if (updated) {
+        setNotes((prev) => prev.map((n) => (n.id === id ? updated : n)))
+        scheduleAutoSync()
+      }
     } catch {
       setError('Failed to update bookmark')
     }
@@ -130,10 +153,40 @@ export function NotesPage() {
       }
     }
 
+    await changeSyncEnabled(false)
+    setSyncStatus('idle')
     logout()
   }
 
-  // Applies the plan and refreshes the screen
+  // Turns "keep syncing" on or off, in memory and in storage
+  async function changeSyncEnabled(value: boolean) {
+    syncEnabledRef.current = value
+    setSyncEnabled(value)
+    if (!value) window.clearTimeout(autoSyncTimer.current)
+    await saveSyncEnabled(value)
+  }
+
+  function handleSyncFailure(err: unknown) {
+    console.error('sync failed', err)
+
+    // fetch throws a TypeError when there is no connection
+    const offline = err instanceof TypeError
+
+    if (offline && syncEnabledRef.current) {
+      setSyncStatus('offline')
+      return
+    }
+
+    setError(
+      offline
+        ? "Can't reach the server. Keep syncing was not turned on."
+        : 'Failed to sync with the server',
+    )
+    setSyncStatus('error')
+  }
+
+  // Applies the plan and refreshes the screen.
+  // A full sync that works also turns the toggle on.
   async function applyPlan(plan: SyncPlan, resolutions: Array<'local' | 'server'>) {
     setSyncStatus('syncing')
 
@@ -142,14 +195,14 @@ export function NotesPage() {
       const refreshed = await getLocalNotes()
       setNotes(refreshed)
       setSyncVersion((v) => v + 1)
+      if (!syncEnabledRef.current) await changeSyncEnabled(true)
       setSyncStatus('done')
     } catch (err) {
-      console.error('sync failed', err)
-      setError('Failed to sync with the server')
-      setSyncStatus('error')
+      handleSyncFailure(err)
     } finally {
       pendingPlan = null
       pendingResolutions = []
+      busyRef.current = false
     }
   }
 
@@ -169,9 +222,11 @@ export function NotesPage() {
     })
   }
 
-  // Plan, then conflict modal, then delete confirmation, then apply
-  async function handleSyncClick() {
-    if (!isAuthenticated) return
+  // Full check: plan, then conflict modal, then delete confirmation, then apply.
+  // Runs when the toggle is turned on, when the tab opens and when the connection comes back.
+  async function runFullSync() {
+    if (busyRef.current) return
+    busyRef.current = true
 
     setSyncStatus('syncing')
     setError('')
@@ -182,36 +237,82 @@ export function NotesPage() {
       if (plan.conflicts.length > 0) {
         pendingPlan = plan
         setPendingConflicts(plan.conflicts)
-        return
+        return // busyRef is released when the modals finish
       }
 
       await applyOrConfirm(plan, [])
     } catch (err) {
-      console.error('sync failed', err)
-      setError('Failed to sync with the server')
-      setSyncStatus('error')
+      handleSyncFailure(err)
+      busyRef.current = false
     }
+  }
+
+  // Auto-send: only sends local changes, never opens a modal
+  async function runQuietSync() {
+    if (!syncEnabledRef.current) return
+
+    if (busyRef.current) {
+      scheduleAutoSync() // a full check is running, try again later
+      return
+    }
+
+    busyRef.current = true
+    setSyncStatus('syncing')
+
+    try {
+      const plan = await planSync()
+      await applySync(sendOnlyPlan(plan), [])
+      const refreshed = await getLocalNotes()
+      setNotes(refreshed)
+      setSyncStatus('done')
+    } catch (err) {
+      handleSyncFailure(err)
+    } finally {
+      busyRef.current = false
+    }
+  }
+
+  function scheduleAutoSync() {
+    if (!syncEnabledRef.current) return
+
+    window.clearTimeout(autoSyncTimer.current)
+    autoSyncTimer.current = window.setTimeout(runQuietSync, AUTO_SYNC_DELAY_MS)
+  }
+
+  async function handleToggleSync() {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+
+    if (syncEnabled) {
+      await changeSyncEnabled(false)
+      setSyncStatus('idle')
+      return
+    }
+
+    await runFullSync()
   }
 
   async function handleConflictsResolved(resolutions: Array<'local' | 'server'>) {
     const plan = pendingPlan
     setPendingConflicts(null)
-    if (!plan) return
+    if (!plan) {
+      busyRef.current = false
+      return
+    }
 
     await applyOrConfirm(plan, resolutions)
-  }
-
-  function handleConflictsCancelled() {
-    pendingPlan = null
-    setPendingConflicts(null)
-    setSyncStatus('idle')
   }
 
   async function handleDeletionsConfirmed() {
     const plan = pendingPlan
     const resolutions = pendingResolutions
     setPendingDeletions(null)
-    if (!plan) return
+    if (!plan) {
+      busyRef.current = false
+      return
+    }
 
     await applyPlan(plan, resolutions)
   }
@@ -221,17 +322,24 @@ export function NotesPage() {
     const plan = pendingPlan
     const resolutions = pendingResolutions
     setPendingDeletions(null)
-    if (!plan) return
+    if (!plan) {
+      busyRef.current = false
+      return
+    }
 
     await applyPlan(keepDeletedNotes(plan), resolutions)
   }
 
-  // Nothing was applied, so the next sync asks again
-  function handleDeletionsCancelled() {
+  // Cancelling a modal turns the toggle off. Nothing was applied, so the next
+  // full check asks again. With it on, the auto-send could overwrite the server.
+  async function handleSyncCancelled() {
     pendingPlan = null
     pendingResolutions = []
+    busyRef.current = false
+    setPendingConflicts(null)
     setPendingDeletions(null)
     setSyncStatus('idle')
+    await changeSyncEnabled(false)
   }
 
   // Opens the note the popup asked for. Also runs when the tab becomes visible,
@@ -267,6 +375,17 @@ export function NotesPage() {
           setSelectedNoteId(result.pendingOpenNoteId)
           await chrome.storage.local.remove('pendingOpenNoteId')
         }
+
+        const enabled = await getSyncEnabled()
+        if (cancelled) return
+
+        if (enabled && isAuthenticated) {
+          syncEnabledRef.current = true
+          setSyncEnabled(true)
+          runFullSync() // full check when the tab opens
+        } else if (enabled) {
+          await saveSyncEnabled(false) // there is no valid token anymore
+        }
       } catch {
         if (!cancelled) setError('Failed to load notes')
       } finally {
@@ -279,6 +398,7 @@ export function NotesPage() {
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -299,26 +419,71 @@ export function NotesPage() {
     }
   }, [])
 
+  // 401: authFetch fires this event, so the toggle goes off.
+  // AuthProvider handles the redirect to the login page.
+  useEffect(() => {
+    function handleExpired() {
+      syncEnabledRef.current = false
+      saveSyncEnabled(false)
+    }
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired)
+
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired)
+      window.clearTimeout(autoSyncTimer.current)
+    }
+  }, [])
+
+  // Offline with the toggle on: full check again every few seconds
+  // and as soon as the browser says the connection is back
+  useEffect(() => {
+    if (!syncEnabled || syncStatus !== 'offline') return
+
+    const id = window.setInterval(runFullSync, OFFLINE_RETRY_MS)
+    window.addEventListener('online', runFullSync)
+
+    return () => {
+      window.clearInterval(id)
+      window.removeEventListener('online', runFullSync)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncEnabled, syncStatus])
+
   const selectedNote = notes.find((n) => n.id === selectedNoteId) ?? null
 
   if (loading) return <p>Loading...</p>
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 12px', gap: 8 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          padding: '8px 12px',
+          gap: 12,
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <SyncToggle
+            checked={syncEnabled}
+            disabled={syncStatus === 'syncing' && !syncEnabled}
+            title={isAuthenticated ? 'Keep syncing' : 'Login to sync'}
+            onChange={handleToggleSync}
+          />
+          <span>
+            {syncStatus === 'syncing' && 'Syncing...'}
+            {syncStatus === 'done' && syncEnabled && 'Synced'}
+            {syncStatus === 'offline' && 'Offline, retrying...'}
+          </span>
+        </span>
+
         {isAuthenticated ? (
           <button onClick={handleLogoutClick}>Logout</button>
         ) : (
           <button onClick={() => navigate('/login')}>Login</button>
         )}
-        <button
-          onClick={handleSyncClick}
-          disabled={!isAuthenticated || syncStatus === 'syncing'}
-          title={isAuthenticated ? 'Sync with the server' : 'Login to sync'}
-        >
-          {syncStatus === 'syncing' ? 'Syncing...' : 'Sync'}
-        </button>
-        {syncStatus === 'done' && <span style={{ marginLeft: 8 }}>Synced!</span>}
       </div>
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
@@ -356,7 +521,7 @@ export function NotesPage() {
         <SyncConflictModal
           conflicts={pendingConflicts}
           onResolve={handleConflictsResolved}
-          onCancel={handleConflictsCancelled}
+          onCancel={handleSyncCancelled}
         />
       )}
 
@@ -366,7 +531,7 @@ export function NotesPage() {
           fromDevice={pendingDeletions.fromDevice}
           onConfirm={handleDeletionsConfirmed}
           onKeep={handleDeletionsKept}
-          onCancel={handleDeletionsCancelled}
+          onCancel={handleSyncCancelled}
         />
       )}
 

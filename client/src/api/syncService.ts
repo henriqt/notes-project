@@ -180,6 +180,53 @@ export function keepDeletedNotes(plan: SyncPlan): SyncPlan {
   }
 }
 
+// Plan for "keep syncing" after a save: only sends local changes.
+// No pulls, no deletions, no conflicts (those wait for the next full check).
+export function sendOnlyPlan(plan: SyncPlan): SyncPlan {
+  return {
+    ...plan,
+    toPull: [],
+    toUpdateLocal: [],
+    toDeleteOnServer: [],
+    toDeleteLocally: [],
+    conflicts: [],
+    tombstones: [],
+  }
+}
+
+// applySync reads the notes at the start and writes them at the end. Anything the
+// user typed, created or deleted in between would be lost, so merge it back first.
+async function mergeConcurrentEdits(startNotes: Note[], result: Map<number, Note>): Promise<void> {
+  const current = await getLocalNotes()
+  const started = new Map(startNotes.map((n) => [n.id, n]))
+  const currentIds = new Set(current.map((n) => n.id))
+
+  for (const now of current) {
+    const before = started.get(now.id)
+
+    if (!before) {
+      if (!result.has(now.id)) result.set(now.id, now) // created during the sync
+      continue
+    }
+
+    const synced = result.get(now.id)
+    if (synced && now.updatedAt !== before.updatedAt) {
+      // Edited during the sync: keep the new text, keep serverId and baseHash
+      result.set(now.id, {
+        ...synced,
+        title: now.title,
+        content: now.content,
+        isBookmarked: now.isBookmarked,
+        updatedAt: now.updatedAt,
+      })
+    }
+  }
+
+  for (const before of startNotes) {
+    if (!currentIds.has(before.id)) result.delete(before.id) // deleted during the sync
+  }
+}
+
 // Turns a note that came from the server into a new local note.
 async function toLocalNote(server: Note): Promise<Note> {
   return {
@@ -227,6 +274,7 @@ export async function applySync(
       baseHash: await hashNote({ title: local.title, content: '', isBookmarked: local.isBookmarked }),
     })
   }
+  await mergeConcurrentEdits(localNotes, byId)
   await saveLocalNotes([...byId.values()])
 
   // Step 2: every title exists now, so send the real content
@@ -321,6 +369,7 @@ export async function applySync(
     }
   }
 
+  await mergeConcurrentEdits(localNotes, byId)
   await saveLocalNotes([...byId.values()])
 
   // Remove the tombstones this sync handled. New ones made meanwhile stay.
