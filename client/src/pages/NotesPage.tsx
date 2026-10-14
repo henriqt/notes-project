@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   getLocalNotes,
   createLocalNote,
@@ -54,9 +53,8 @@ export function NotesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [wikilinkNotice, setWikilinkNotice] = useState('')
-
+  const [authNotice, setAuthNotice] = useState('')
   const { isAuthenticated, logout } = useAuth()
-  const navigate = useNavigate()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle')
   const [syncEnabled, setSyncEnabled] = useState(false)
   const [pendingConflicts, setPendingConflicts] = useState<SyncConflict[] | null>(null)
@@ -138,6 +136,7 @@ export function NotesPage() {
   }
 
   async function handleLogoutConfirmed(clearLocalNotes: boolean) {
+    setAuthNotice('')
     setLogoutPrompt(null)
 
     if (clearLocalNotes) {
@@ -281,7 +280,7 @@ export function NotesPage() {
 
   async function handleToggleSync() {
     if (!isAuthenticated) {
-      navigate('/login')
+      setAuthNotice('Log in through the extension icon to turn on syncing.')
       return
     }
 
@@ -420,11 +419,12 @@ export function NotesPage() {
   }, [])
 
   // 401: authFetch fires this event, so the toggle goes off.
-  // AuthProvider handles the redirect to the login page.
+  // The notice below tells the user to log in again.
   useEffect(() => {
     function handleExpired() {
       syncEnabledRef.current = false
       saveSyncEnabled(false)
+      setAuthNotice('Your session expired. Log in again through the extension icon.')
     }
 
     window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired)
@@ -482,7 +482,7 @@ export function NotesPage() {
         {isAuthenticated ? (
           <button onClick={handleLogoutClick}>Logout</button>
         ) : (
-          <button onClick={() => navigate('/login')}>Login</button>
+          <span>Not logged in</span>
         )}
       </div>
 
@@ -498,6 +498,7 @@ export function NotesPage() {
         <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           {error && <p role="alert">{error}</p>}
           {wikilinkNotice && <p role="status">{wikilinkNotice}</p>}
+          {authNotice && !isAuthenticated && <p role="status">{authNotice}</p>}
 
           {selectedNote ? (
             <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>

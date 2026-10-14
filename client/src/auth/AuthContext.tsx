@@ -2,7 +2,6 @@ import { createContext } from 'react'
 
 export interface AuthContextValue {
   isAuthenticated: boolean
-  login: (token: string) => void
   logout: () => void
 }
 

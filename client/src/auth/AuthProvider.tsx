@@ -1,18 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AuthContext } from './AuthContext'
-import { getToken, setToken as saveToken, clearToken, AUTH_EXPIRED_EVENT } from '../api/client'
+import { getToken, clearToken, AUTH_EXPIRED_EVENT } from '../api/client'
 
-// Needs to live inside the router (main.tsx: HashRouter > AuthProvider > App)
-// because it uses useNavigate.
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(getToken())
-  const navigate = useNavigate()
-
-  function login(newToken: string) {
-    saveToken(newToken)
-    setTokenState(newToken)
-  }
 
   function logout() {
     clearToken()
@@ -25,15 +16,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     function handleAuthExpired() {
       setTokenState(null)
-      navigate('/login')
     }
 
     window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
     return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired)
-  }, [navigate])
+  }, [])
+  
+  // The token can change in another page of the extension (e.g. login in
+  // the popup while the tab is open). localStorage fires "storage" in the
+  // other pages, so we re-read it here. key === null means clear().
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key === 'token' || e.key === null) {
+        setTokenState(getToken())
+      }
+    }
+
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!token, logout }}>
       {children}
     </AuthContext.Provider>
   )
