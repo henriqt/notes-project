@@ -1,11 +1,55 @@
 .sidebar {
-  width: 240px;
-  flex-shrink: 0;
-  height: 100%;
+  flex: 1;
+  width: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  padding: 8px;
+  gap: 8px;
+  background: var(--bg-panel);
+}
+
+.sidebar-toolbar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sidebar-icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text);
+}
+
+.sidebar-icon-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-h);
+}
+
+/* Bookmark filter turned on */
+.sidebar-icon-btn[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.sidebar-new {
+  width: 100%;
+  padding: 8px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.sidebar-new:hover:not(:disabled) {
+  background: var(--accent-border);
+  color: var(--text-h);
+}
+
+.sidebar-search {
+  width: 100%;
 }
 
 /* scrolls on its own so a long list of notes doesn't push the page taller */
@@ -16,4 +60,70 @@
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius);
+}
+
+.sidebar-item:hover {
+  background: var(--bg-hover);
+}
+
+.sidebar-item.selected {
+  background: var(--bg-active);
+}
+
+.sidebar-item-title {
+  flex: 1;
+  min-width: 0; /* lets the long title be cut with "..." */
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The row already shows the hover, so the title button must not paint its own */
+.sidebar-item-title:hover:not(:disabled) {
+  background: transparent;
+}
+
+.sidebar-item.selected .sidebar-item-title {
+  color: var(--text-h);
+}
+
+.sidebar-item-star {
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+/* Delete only shows on hover or keyboard focus */
+.sidebar-item-delete {
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  opacity: 0;
+}
+
+.sidebar-item:hover .sidebar-item-delete,
+.sidebar-item-delete:focus-visible {
+  opacity: 1;
+}
+
+.sidebar-item-delete:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text-h);
+}
+
+.sidebar-empty {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-align: center;
 }

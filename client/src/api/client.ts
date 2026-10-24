@@ -46,20 +46,6 @@ export function getTokenUserId(): string | undefined {
   return id === undefined || id === null ? undefined : String(id)
 }
 
-export function getTokenEmail(): string | undefined {
-  const token = getToken()
-  if (!token) return undefined
-
-  const payload = readPayload(token)
-  if (!payload) return undefined
-
-  // Same as the id: the claim key may be a long URL, so match by the end of it
-  const key = Object.keys(payload).find((k) => k.endsWith('/emailaddress'))
-  const email = (key ? payload[key] : undefined) ?? payload.email
-
-  return typeof email === 'string' ? email : undefined
-}
-
 export function setToken(token: string): void {
   localStorage.setItem('token', token)
 }

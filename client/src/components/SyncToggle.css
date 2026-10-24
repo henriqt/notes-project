@@ -12,7 +12,7 @@
 }
 
 .sync-toggle[aria-checked='true'] {
-  background: #3498db;
+  background: var(--accent);
 }
 
 .sync-toggle:disabled {
@@ -27,10 +27,21 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ecf0f1;
+  background: var(--text-h);
   transition: transform 0.2s;
 }
 
 .sync-toggle[aria-checked='true'] .sync-toggle-knob {
   transform: translateX(20px);
+}
+
+/* Hover keeps the state color (the global button:hover would darken it) */
+.sync-toggle:hover:not(:disabled) {
+  background: #9ca3af;
+  filter: brightness(1.1);
+}
+
+.sync-toggle[aria-checked='true']:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.1);
 }

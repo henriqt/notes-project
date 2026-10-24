@@ -13,3 +13,36 @@
   overflow-wrap: break-word;
   text-align: left;
 }
+
+/* Task checkboxes: clickable, drawn with the accent color instead of the browser default */
+.note-preview input[type='checkbox'] {
+  appearance: none;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+  border: 1px solid var(--accent-border);
+  border-radius: 3px;
+}
+
+.note-preview input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.note-preview input[type='checkbox']:checked::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--bg);
+}
+
+/* No bullet next to a task item */
+.note-preview li:has(> input[type='checkbox']) {
+  list-style: none;
+}

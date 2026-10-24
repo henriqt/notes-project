@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { API_BASE } from '../api/client'
+import './AuthForm.css'
 
 interface RegisterFormProps {
   onRegistered: () => void
@@ -42,23 +43,22 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <h3 style={{ margin: '0 0 8px', fontSize: '0.95rem' }}>Create account</h3>
+    return (
+    <form className="auth-form" onSubmit={handleSubmit}>
+      <h3 className="auth-title">Create account</h3>
 
-      <div>
+      <div className="auth-field">
         <label htmlFor="register-email">Email</label>
         <input
           id="register-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: '100%', boxSizing: 'border-box' }}
           required
         />
       </div>
 
-      <div>
+      <div className="auth-field">
         <label htmlFor="register-password">Password</label>
         <input
           id="register-password"
@@ -67,21 +67,24 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
           onChange={(e) => setPassword(e.target.value)}
           minLength={8}
           maxLength={72}
-          style={{ width: '100%', boxSizing: 'border-box' }}
           required
         />
       </div>
 
-      {error && <p role="alert">{error}</p>}
-      {success && <p>Account created! Going to sign in...</p>}
+      {error && (
+        <p className="auth-error" role="alert">
+          {error}
+        </p>
+      )}
+      {success && <p className="auth-success">Account created! Going to sign in...</p>}
 
-      <button type="submit" style={{ width: '100%', marginTop: 8 }}>
+      <button type="submit" className="auth-submit">
         Create account
       </button>
 
-      <p style={{ marginTop: 8, fontSize: '0.85rem' }}>
+      <p className="auth-switch">
         Already have an account?{' '}
-        <button type="button" onClick={onSwitchToLogin}>
+        <button type="button" className="auth-link" onClick={onSwitchToLogin}>
           Sign in
         </button>
       </p>

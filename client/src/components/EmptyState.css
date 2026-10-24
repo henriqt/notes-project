@@ -1,0 +1,38 @@
+/* Only the controls, pushed to the right */
+.empty-header {
+  justify-content: flex-start;
+}
+
+/* Fills the area under the top bar and centers the content */
+.empty-message {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.empty-message h2 {
+  margin: 0;
+}
+
+.empty-message p {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.empty-message button {
+  margin-top: 8px;
+  padding: 8px 16px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.empty-message button:hover:not(:disabled) {
+  background: var(--accent-border);
+  color: var(--text-h);
+}

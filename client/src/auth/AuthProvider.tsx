@@ -5,6 +5,10 @@ import { getToken, clearToken, AUTH_EXPIRED_EVENT } from '../api/client'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setTokenState] = useState<string | null>(getToken())
 
+  function login() {
+    setTokenState(getToken())
+  }
+
   function logout() {
     clearToken()
     setTokenState(null)
@@ -37,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

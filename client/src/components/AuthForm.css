@@ -1,0 +1,75 @@
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-field label {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.auth-field input {
+  width: 100%;
+}
+
+.auth-error {
+  margin: 0;
+  font-size: 12px;
+  color: #f87171;
+}
+
+.auth-success {
+  margin: 0;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--accent-border);
+  color: var(--text-h);
+}
+
+.auth-switch {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* Looks like a link, but stays a button (it does not navigate) */
+.auth-link {
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.auth-link:hover:not(:disabled) {
+  background: none;
+  color: var(--text-h);
+}

@@ -1,23 +1,32 @@
-.editor-split {
-  display: flex;
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-}
-
-.editor-pane {
-  display: flex;
-  flex-direction: column;
-  min-width: 0; /* without this the pane grows to fit long unbroken text instead of wrapping */
-}
-
 .pane-header {
-  font-size: 0.85rem;
-  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 8px;
+  background: var(--bg-panel);
   border-bottom: 1px solid var(--border);
-  color: var(--text);
-  text-align: left;
   flex-shrink: 0;
+}
+
+/* Looks like an active tab: accent line under the text */
+.pane-tab {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  color: var(--text-h);
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: -1px; /* sits over the header border */
+}
+
+.pane-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
 }
 
 .editor-textarea {
@@ -29,34 +38,116 @@
   outline: none;
   background: transparent;
   color: var(--text-h);
-  font-family: var(--sans);
-  font-size: 0.95rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
   padding: 8px;
   box-sizing: border-box;
   white-space: pre-wrap;
   overflow-wrap: break-word;
 }
 
-/* Wider than it looks so it's actually easy to grab, but the visible
-   line (the ::after) stays thin. Standard trick for drag handles. */
-.editor-divider {
-  width: 8px;
+/* Note title, inside the Edit mode. The ".note-editor" prefix beats the global input style */
+.note-editor .editor-title {
+  width: 100%;
   flex-shrink: 0;
-  cursor: col-resize;
-  position: relative;
   background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 10px 8px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-h);
 }
 
-.editor-divider::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--border);
+.note-editor .editor-title:focus-visible {
+  outline: none;
+  border-bottom-color: var(--accent-border);
 }
 
-.editor-divider:hover::after {
-  background: var(--text);
+/* Small icon button inside a pane header (bookmark star) */
+.pane-action {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text);
+}
+
+.pane-action:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-h);
+}
+
+.pane-action[aria-pressed='true'],
+.pane-action[aria-pressed='true']:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+/* Bottom bar with the note counters, like the status bar in Obsidian */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  min-height: 26px;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* The text area fills the whole pane, so a focus ring around it is just noise */
+.editor-textarea:focus-visible {
+  outline: none;
+}
+
+.note-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane-tabs {
+  align-self: stretch;
+  display: flex;
+  margin-right: auto;
+}
+
+/* Tabs are buttons now: only the active one gets the accent line */
+.pane-tab {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  margin-bottom: -1px; /* sits over the header border */
+}
+
+.pane-tab:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text);
+}
+
+.pane-tab.active {
+  color: var(--text-h);
+  border-bottom-color: var(--accent);
+}
+
+.preview-title {
+  margin: 0;
+  padding: 10px 8px;
+  font-size: 1.3rem;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: break-word;
 }

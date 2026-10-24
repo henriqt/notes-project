@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import './NotesPage.css'
 import {
   getLocalNotes,
   createLocalNote,
@@ -28,6 +29,9 @@ import { SyncConflictModal } from '../components/SyncConflictModal'
 import { SyncDeleteConfirmModal } from '../components/SyncDeleteConfirmModal'
 import { LogoutModal } from '../components/LogoutModal'
 import { SyncToggle } from '../components/SyncToggle'
+import { LoginForm } from '../components/LoginForm'
+import { RegisterForm } from '../components/RegisterForm'
+import { EmptyState } from '../components/EmptyState'
 
 // One status value instead of several booleans
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
@@ -54,12 +58,16 @@ export function NotesPage() {
   const [error, setError] = useState('')
   const [wikilinkNotice, setWikilinkNotice] = useState('')
   const [authNotice, setAuthNotice] = useState('')
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, login, logout } = useAuth()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle')
   const [syncEnabled, setSyncEnabled] = useState(false)
   const [pendingConflicts, setPendingConflicts] = useState<SyncConflict[] | null>(null)
   const [pendingDeletions, setPendingDeletions] = useState<PendingDeletions | null>(null)
   const [logoutPrompt, setLogoutPrompt] = useState<{ unsyncedCount: number } | null>(null)
+  // Which auth form is open (null = the notes screens)
+  const [authView, setAuthView] = useState<'login' | 'register' | null>(null)
+  // The notes drawer starts open, so the panel opens on the list
+  const [drawerOpen, setDrawerOpen] = useState(true)
 
   // Timers and listeners read the ref, because their state would be stale
   const syncEnabledRef = useRef(false)
@@ -73,11 +81,17 @@ export function NotesPage() {
   // The auto-send never bumps it, or the editor would remount while typing.
   const [syncVersion, setSyncVersion] = useState(0)
 
+  function handleSelectNote(id: number) {
+    setSelectedNoteId(id)
+    setDrawerOpen(false)
+  }
+
   async function handleCreateNote() {
     try {
       const newNote = await createLocalNote('New note', '')
       setNotes((prev) => [newNote, ...prev])
       setSelectedNoteId(newNote.id)
+      setDrawerOpen(false)
     } catch {
       setError('Failed to create note')
     }
@@ -127,6 +141,13 @@ export function NotesPage() {
     } else {
       setWikilinkNotice(`The note "${title}" doesn't exist yet.`)
     }
+  }
+
+  function handleLoggedIn() {
+    login()
+    setAuthView(null)
+    setAuthNotice('')
+    setDrawerOpen(true)
   }
 
   // Logout opens a modal first, so the user can also clear the local notes
@@ -280,7 +301,8 @@ export function NotesPage() {
 
   async function handleToggleSync() {
     if (!isAuthenticated) {
-      setAuthNotice('Log in through the extension icon to turn on syncing.')
+      setAuthView('login')
+      setDrawerOpen(false)
       return
     }
 
@@ -341,21 +363,6 @@ export function NotesPage() {
     await changeSyncEnabled(false)
   }
 
-  // Opens the note the popup asked for. Also runs when the tab becomes visible,
-  // because the message can be missed
-  async function checkPendingNote() {
-    const result = (await chrome.storage.local.get({
-      pendingOpenNoteId: null as number | null,
-    })) as { pendingOpenNoteId: number | null }
-
-    if (result.pendingOpenNoteId !== null) {
-      const data = await getLocalNotes()
-      setNotes(data)
-      setSelectedNoteId(result.pendingOpenNoteId)
-      await chrome.storage.local.remove('pendingOpenNoteId')
-    }
-  }
-
   useEffect(() => {
     let cancelled = false
 
@@ -364,16 +371,6 @@ export function NotesPage() {
         const data = await getLocalNotes()
         if (cancelled) return
         setNotes(data)
-
-        const result = (await chrome.storage.local.get({
-          pendingOpenNoteId: null as number | null,
-        })) as { pendingOpenNoteId: number | null }
-
-        if (cancelled) return
-        if (result.pendingOpenNoteId !== null) {
-          setSelectedNoteId(result.pendingOpenNoteId)
-          await chrome.storage.local.remove('pendingOpenNoteId')
-        }
 
         const enabled = await getSyncEnabled()
         if (cancelled) return
@@ -400,31 +397,13 @@ export function NotesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    function handleMessage(message: { type: string }) {
-      if (message.type === 'OPEN_NOTE') checkPendingNote()
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'visible') checkPendingNote()
-    }
-
-    chrome.runtime.onMessage.addListener(handleMessage)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleMessage)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [])
-
   // 401: authFetch fires this event, so the toggle goes off.
   // The notice below tells the user to log in again.
   useEffect(() => {
     function handleExpired() {
       syncEnabledRef.current = false
       saveSyncEnabled(false)
-      setAuthNotice('Your session expired. Log in again through the extension icon.')
+      setAuthNotice('Your session expired. Log in again.')
     }
 
     window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired)
@@ -452,72 +431,135 @@ export function NotesPage() {
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId) ?? null
 
+  // Sync toggle, status and login/logout. They live in the drawer footer.
+  const syncControls = (
+    <>
+      <span className="topbar-sync">
+        <SyncToggle
+          checked={syncEnabled}
+          disabled={syncStatus === 'syncing' && !syncEnabled}
+          title={isAuthenticated ? 'Keep syncing' : 'Login to sync'}
+          onChange={handleToggleSync}
+        />
+        <span>
+          {syncStatus === 'syncing' && 'Syncing...'}
+          {syncStatus === 'done' && syncEnabled && 'Synced'}
+          {syncStatus === 'offline' && 'Offline, retrying...'}
+        </span>
+      </span>
+
+      {isAuthenticated ? (
+        <button onClick={handleLogoutClick}>Logout</button>
+      ) : (
+        <button
+          onClick={() => {
+            setAuthView('login')
+            setDrawerOpen(false)
+          }}
+        >
+          Log in
+        </button>
+      )}
+    </>
+  )
+
   if (loading) return <p>Loading...</p>
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          padding: '8px 12px',
-          gap: 12,
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <SyncToggle
-            checked={syncEnabled}
-            disabled={syncStatus === 'syncing' && !syncEnabled}
-            title={isAuthenticated ? 'Keep syncing' : 'Login to sync'}
-            onChange={handleToggleSync}
-          />
-          <span>
-            {syncStatus === 'syncing' && 'Syncing...'}
-            {syncStatus === 'done' && syncEnabled && 'Synced'}
-            {syncStatus === 'offline' && 'Offline, retrying...'}
-          </span>
-        </span>
-
-        {isAuthenticated ? (
-          <button onClick={handleLogoutClick}>Logout</button>
-        ) : (
-          <span>Not logged in</span>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <Sidebar
-          notes={notes}
-          selectedNoteId={selectedNoteId}
-          onSelectNote={setSelectedNoteId}
-          onCreateNote={handleCreateNote}
-          onDeleteNote={handleDeleteNote}
-        />
-
-        <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+    <div className="notes-page">
+      <div className="notes-body">
+        <main className="notes-main">
           {error && <p role="alert">{error}</p>}
           {wikilinkNotice && <p role="status">{wikilinkNotice}</p>}
           {authNotice && !isAuthenticated && <p role="status">{authNotice}</p>}
 
-          {selectedNote ? (
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-              <button onClick={() => handleToggleBookmark(selectedNote.id)}>
-                {selectedNote.isBookmarked ? '★ Bookmarked' : '☆ Bookmark'}
-              </button>
+          {authView && !isAuthenticated ? (
+            <div className="auth-screen">
+              <div className="pane-header">
+                <button
+                  className="pane-action"
+                  onClick={() => {
+                    setAuthView(null)
+                    setDrawerOpen(true)
+                  }}
+                  aria-label="Back to notes"
+                  title="Back to notes"
+                >
+                  ←
+                </button>
+              </div>
+              <div className="auth-screen-body">
+                {authView === 'login' ? (
+                  <LoginForm
+                    onLoggedIn={handleLoggedIn}
+                    onSwitchToRegister={() => setAuthView('register')}
+                  />
+                ) : (
+                  <RegisterForm
+                    onRegistered={() => setAuthView('login')}
+                    onSwitchToLogin={() => setAuthView('login')}
+                  />
+                )}
+              </div>
+            </div>
+          ) : selectedNote ? (
+            <div className="notes-editor-wrap">
               <NoteEditor
                 key={`${selectedNote.id}-${syncVersion}`}
                 note={selectedNote}
                 onSave={handleSaveNote}
                 onWikilinkClick={handleWikilinkClick}
+                onToggleBookmark={() => handleToggleBookmark(selectedNote.id)}
+                onOpenDrawer={() => setDrawerOpen(true)}
               />
             </div>
           ) : (
-            <p>Select a note or create a new one</p>
+            <EmptyState
+              onCreateNote={handleCreateNote}
+              headerRight={
+                <button
+                  className="pane-action"
+                  onClick={() => setDrawerOpen(true)}
+                  aria-label="Open notes"
+                  title="Open notes"
+                >
+                  ☰
+                </button>
+              }
+            />
+          )}
+
+          {drawerOpen && !(authView && !isAuthenticated) && (
+            <>
+              <div className="drawer-scrim" onClick={() => setDrawerOpen(false)} />
+              <aside className="drawer">
+                <div className="drawer-header">
+                  <span className="drawer-title">Notes</span>
+                  <button
+                    className="pane-action"
+                    onClick={() => setDrawerOpen(false)}
+                    aria-label="Close notes"
+                    title="Close notes"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <Sidebar
+                  notes={notes}
+                  selectedNoteId={selectedNoteId}
+                  onSelectNote={handleSelectNote}
+                  onCreateNote={handleCreateNote}
+                  onDeleteNote={handleDeleteNote}
+                />
+
+                <div className="drawer-footer">{syncControls}</div>
+              </aside>
+            </>
           )}
         </main>
       </div>
-
+      
       {pendingConflicts && (
         <SyncConflictModal
           conflicts={pendingConflicts}

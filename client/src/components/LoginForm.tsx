@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { API_BASE, setToken } from '../api/client'
+import './AuthForm.css'
 
 interface LoginFormProps {
   onLoggedIn: () => void
@@ -40,43 +41,45 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
     }
   }
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <h3 style={{ margin: '0 0 8px', fontSize: '0.95rem' }}>Sign in</h3>
+    return (
+    <form className="auth-form" onSubmit={handleSubmit}>
+      <h3 className="auth-title">Sign in</h3>
 
-      <div>
+      <div className="auth-field">
         <label htmlFor="login-email">Email</label>
         <input
           id="login-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: '100%', boxSizing: 'border-box' }}
           required
         />
       </div>
 
-      <div>
+      <div className="auth-field">
         <label htmlFor="login-password">Password</label>
         <input
           id="login-password"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{ width: '100%', boxSizing: 'border-box' }}
           required
         />
       </div>
 
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p className="auth-error" role="alert">
+          {error}
+        </p>
+      )}
 
-      <button type="submit" style={{ width: '100%', marginTop: 8 }}>
+      <button type="submit" className="auth-submit">
         Sign in
       </button>
 
-      <p style={{ marginTop: 8, fontSize: '0.85rem' }}>
+      <p className="auth-switch">
         Don't have an account?{' '}
-        <button type="button" onClick={onSwitchToRegister}>
+        <button type="button" className="auth-link" onClick={onSwitchToRegister}>
           Sign up
         </button>
       </p>

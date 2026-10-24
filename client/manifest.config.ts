@@ -21,9 +21,9 @@ export default defineManifest({
   name: 'Notes Project',
   version: '1.0.0',
   key: getExtensionKey(),
-  description: 'Markdown note editor with wikilinks, Obsidian-style.',
+  description: 'Markdown note editor with wikilinks and optional sync.',
   action: {
-    default_popup: 'popup.html',
+    default_title: 'Notes Project',
     default_icon: {
       16: 'icons/icon16.png',
       48: 'icons/icon48.png',
@@ -35,6 +35,13 @@ export default defineManifest({
     48: 'icons/icon48.png',
     128: 'icons/icon128.png',
   },
-  permissions: ['storage'],
+  permissions: ['storage', 'sidePanel'],
   host_permissions: ['https://localhost:7269/*'],
+  side_panel: {
+  default_path: 'index.html',
+  },
+  background: {
+  service_worker: 'src/background.ts',
+  type: 'module',
+  },
 })
