@@ -19,7 +19,7 @@ export function EmptyState({ onCreateNote, headerRight }: EmptyStateProps) {
 
       <div className="empty-message">
         <h2>No note selected</h2>
-        <p>Pick a note from the sidebar or create a new one.</p>
+        <p>Pick a note from the notes list or create a new one.</p>
         <button onClick={onCreateNote}>+ New note</button>
       </div>
 

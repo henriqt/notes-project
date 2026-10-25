@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
-import type { Note } from '../types/note'
+import type { Note } from '../../types/note'
 import { NotePreview } from './NotePreview'
-import { toggleTask } from '../utils/tasks'
+import { toggleTask } from '../../utils/tasks'
 import './NoteEditor.css'
 
 interface NoteEditorProps {

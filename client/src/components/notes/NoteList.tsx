@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { Note } from '../types/note'
-import './Sidebar.css'
+import type { Note } from '../../types/note'
+import './NoteList.css'
 
-interface SidebarProps {
+interface NoteListProps {
   notes: Note[]
   selectedNoteId: number | null
   onSelectNote: (id: number) => void
@@ -10,7 +10,7 @@ interface SidebarProps {
   onDeleteNote: (id: number) => void
 }
 
-export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, onDeleteNote }: SidebarProps) {
+export function NoteList({ notes, selectedNoteId, onSelectNote, onCreateNote, onDeleteNote }: NoteListProps) {
   const [search, setSearch] = useState('')
   const [onlyBookmarked, setOnlyBookmarked] = useState(false)
 
@@ -23,10 +23,10 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, onD
   )
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-toolbar">
+    <aside className="note-list">
+      <div className="note-list-toolbar">
         <button
-          className="sidebar-icon-btn"
+          className="note-list-icon-btn"
           onClick={() => setOnlyBookmarked((v) => !v)}
           aria-pressed={onlyBookmarked}
           aria-label="Show only bookmarked notes"
@@ -36,30 +36,30 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, onD
         </button>
       </div>
 
-      <button className="sidebar-new" onClick={onCreateNote}>
+      <button className="note-list-new" onClick={onCreateNote}>
         + New note
       </button>
 
       <input
         type="text"
-        className="sidebar-search"
+        className="note-list-search"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search notes..."
       />
 
-      <ul className="sidebar-notes-list">
+      <ul className="note-list-notes-list">
         {filteredNotes.map((note) => (
           <li
             key={note.id}
-            className={`sidebar-item ${note.id === selectedNoteId ? 'selected' : ''}`}
+            className={`note-list-item ${note.id === selectedNoteId ? 'selected' : ''}`}
           >
-            <button className="sidebar-item-title" onClick={() => onSelectNote(note.id)}>
+            <button className="note-list-item-title" onClick={() => onSelectNote(note.id)}>
               {note.title || 'Untitled'}
             </button>
-            {note.isBookmarked && <span className="sidebar-item-star">★</span>}
+            {note.isBookmarked && <span className="note-list-item-star">★</span>}
             <button
-              className="sidebar-item-delete"
+              className="note-list-item-delete"
               onClick={() => onDeleteNote(note.id)}
               aria-label={`Delete ${note.title || 'Untitled'}`}
             >
@@ -69,7 +69,7 @@ export function Sidebar({ notes, selectedNoteId, onSelectNote, onCreateNote, onD
         ))}
       </ul>
 
-      {filteredNotes.length === 0 && <p className="sidebar-empty">No notes found</p>}
+      {filteredNotes.length === 0 && <p className="note-list-empty">No notes found</p>}
     </aside>
   )
 }

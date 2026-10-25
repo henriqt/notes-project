@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { API_BASE, setToken } from '../api/client'
+import { API_BASE, setToken } from '../../api/client'
 import './AuthForm.css'
 
 interface LoginFormProps {

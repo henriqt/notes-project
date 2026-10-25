@@ -11,8 +11,8 @@ import {
   saveSyncEnabled,
 } from '../api/localStore'
 import type { Note } from '../types/note'
-import { Sidebar } from '../components/Sidebar'
-import { NoteEditor } from '../components/NoteEditor'
+import { NoteList } from '../components/notes/NoteList'
+import { NoteEditor } from '../components/notes/NoteEditor'
 import { syncWikilinksOnSave } from '../utils/wikilinkSync'
 import { useAuth } from '../auth/useAuth'
 import { AUTH_EXPIRED_EVENT } from '../api/client'
@@ -25,13 +25,13 @@ import {
   type SyncConflict,
   type SyncPlan,
 } from '../api/syncService'
-import { SyncConflictModal } from '../components/SyncConflictModal'
-import { SyncDeleteConfirmModal } from '../components/SyncDeleteConfirmModal'
-import { LogoutModal } from '../components/LogoutModal'
-import { SyncToggle } from '../components/SyncToggle'
-import { LoginForm } from '../components/LoginForm'
-import { RegisterForm } from '../components/RegisterForm'
-import { EmptyState } from '../components/EmptyState'
+import { SyncConflictModal } from '../components/sync/SyncConflictModal'
+import { SyncDeleteConfirmModal } from '../components/sync/SyncDeleteConfirmModal'
+import { LogoutModal } from '../components/account/LogoutModal'
+import { SyncToggle } from '../components/sync/SyncToggle'
+import { LoginForm } from '../components/account/LoginForm'
+import { RegisterForm } from '../components/account/RegisterForm'
+import { EmptyState } from '../components/notes/EmptyState'
 
 // One status value instead of several booleans
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
@@ -545,7 +545,7 @@ export function NotesPage() {
                   </button>
                 </div>
 
-                <Sidebar
+                <NoteList
                   notes={notes}
                   selectedNoteId={selectedNoteId}
                   onSelectNote={handleSelectNote}

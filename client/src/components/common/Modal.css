@@ -1,4 +1,4 @@
-.sync-modal-overlay {
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -8,7 +8,7 @@
   z-index: 1000;
 }
 
-.sync-modal {
+.modal {
   width: 420px;
   max-width: 90vw;
   background: var(--bg);
@@ -18,24 +18,24 @@
   box-shadow: var(--shadow);
 }
 
-.sync-modal-header {
+.modal-header {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
 
-.sync-modal-header h2 {
+.modal-header h2 {
   flex: 1;
   font-size: 18px;
   margin: 0;
 }
 
-.sync-modal-icon {
+.modal-icon {
   font-size: 18px;
 }
 
-.sync-modal-close {
+.modal-close {
   background: none;
   border: none;
   font-size: 18px;
@@ -43,20 +43,20 @@
   color: var(--text);
 }
 
-.sync-modal-description {
+.modal-description {
   font-size: 0.9rem;
   color: var(--text);
   margin: 0 0 16px;
 }
 
-.sync-modal-options {
+.modal-options {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 12px;
 }
 
-.sync-modal-option {
+.modal-option {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -70,12 +70,12 @@
   font: inherit;
 }
 
-.sync-modal-option.selected {
+.modal-option.selected {
   border-color: var(--accent);
   background: var(--accent-bg);
 }
 
-.sync-modal-radio {
+.modal-radio {
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -83,40 +83,40 @@
   flex-shrink: 0;
 }
 
-.sync-modal-option.selected .sync-modal-radio {
+.modal-option.selected .modal-radio {
   border-color: var(--accent);
   background: var(--accent);
 }
 
-.sync-modal-icon-small {
+.modal-icon-small {
   font-size: 18px;
 }
 
-.sync-modal-option-text {
+.modal-option-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   font-size: 0.9rem;
 }
 
-.sync-modal-option-text span {
+.modal-option-text span {
   font-size: 0.8rem;
   color: var(--text);
 }
 
-.sync-modal-warning {
+.modal-warning {
   font-size: 0.8rem;
   color: var(--text);
   margin: 0 0 16px;
 }
 
-.sync-modal-actions {
+.modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 
-.sync-modal-continue {
+.modal-continue {
   background: var(--accent);
   color: white;
   border: none;
@@ -125,7 +125,7 @@
   cursor: pointer;
 }
 
-.sync-modal-cancel {
+.modal-cancel {
   background: transparent;
   border: 1px solid var(--border);
   border-radius: 6px;

@@ -1,7 +1,7 @@
 :root {
   /* Surfaces: darkest at the back, lighter as they come forward */
   --bg: #0e1116;          /* app background (editor area) */
-  --bg-panel: #141820;    /* sidebar, status bar, headers */
+  --bg-panel: #141820;    /* notes list, status bar, headers */
   --bg-hover: #1b2029;    /* hover on items and buttons */
   --bg-active: #232a36;   /* selected note, active tab */
 

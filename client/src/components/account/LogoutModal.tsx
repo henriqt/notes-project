@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import './SyncConflictModal.css'
+import '../common/Modal.css'
 
 interface LogoutModalProps {
   unsyncedCount: number // local notes that only exist here or have unsynced changes
@@ -14,16 +14,16 @@ export function LogoutModal({ unsyncedCount, onConfirm, onCancel }: LogoutModalP
   const [clearLocalNotes, setClearLocalNotes] = useState(false)
 
   return (
-    <div className="sync-modal-overlay">
-      <div className="sync-modal">
-        <div className="sync-modal-header">
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
           <h2>Log out</h2>
-          <button className="sync-modal-close" onClick={onCancel} aria-label="Cancel">
+          <button className="modal-close" onClick={onCancel} aria-label="Cancel">
             ×
           </button>
         </div>
 
-        <p className="sync-modal-description">
+        <p className="modal-description">
           You can keep using the app offline after logging out. Your notes stay on this device.
         </p>
 
@@ -46,18 +46,18 @@ export function LogoutModal({ unsyncedCount, onConfirm, onCancel }: LogoutModalP
         </label>
 
         {clearLocalNotes && (
-          <p className="sync-modal-warning">
+          <p className="modal-warning">
             {unsyncedCount > 0
               ? `Unsynced changes in ${unsyncedCount} ${unsyncedCount === 1 ? 'note' : 'notes'} will be lost for good. Notes already synced stay on the server.`
               : 'Everything is synced. Your notes stay on the server and come back when you log in and sync.'}
           </p>
         )}
 
-        <div className="sync-modal-actions">
-          <button className="sync-modal-continue" onClick={() => onConfirm(clearLocalNotes)}>
+        <div className="modal-actions">
+          <button className="modal-continue" onClick={() => onConfirm(clearLocalNotes)}>
             {clearLocalNotes ? 'Log out and clear' : 'Log out'}
           </button>
-          <button className="sync-modal-cancel" onClick={onCancel}>
+          <button className="modal-cancel" onClick={onCancel}>
             Cancel
           </button>
         </div>

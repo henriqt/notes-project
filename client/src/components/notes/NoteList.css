@@ -1,4 +1,4 @@
-.sidebar {
+.note-list {
   flex: 1;
   width: 100%;
   min-height: 0;
@@ -10,12 +10,12 @@
   background: var(--bg-panel);
 }
 
-.sidebar-toolbar {
+.note-list-toolbar {
   display: flex;
   justify-content: space-between;
 }
 
-.sidebar-icon-btn {
+.note-list-icon-btn {
   width: 28px;
   height: 28px;
   padding: 0;
@@ -24,18 +24,18 @@
   color: var(--text);
 }
 
-.sidebar-icon-btn:hover:not(:disabled) {
+.note-list-icon-btn:hover:not(:disabled) {
   background: var(--bg-hover);
   color: var(--text-h);
 }
 
 /* Bookmark filter turned on */
-.sidebar-icon-btn[aria-pressed='true'] {
+.note-list-icon-btn[aria-pressed='true'] {
   color: var(--accent);
   background: var(--accent-bg);
 }
 
-.sidebar-new {
+.note-list-new {
   width: 100%;
   padding: 8px;
   color: var(--accent);
@@ -43,17 +43,17 @@
   border: 1px solid var(--accent-border);
 }
 
-.sidebar-new:hover:not(:disabled) {
+.note-list-new:hover:not(:disabled) {
   background: var(--accent-border);
   color: var(--text-h);
 }
 
-.sidebar-search {
+.note-list-search {
   width: 100%;
 }
 
 /* scrolls on its own so a long list of notes doesn't push the page taller */
-.sidebar-notes-list {
+.note-list-notes-list {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -62,22 +62,22 @@
   list-style: none;
 }
 
-.sidebar-item {
+.note-list-item {
   display: flex;
   align-items: center;
   gap: 4px;
   border-radius: var(--radius);
 }
 
-.sidebar-item:hover {
+.note-list-item:hover {
   background: var(--bg-hover);
 }
 
-.sidebar-item.selected {
+.note-list-item.selected {
   background: var(--bg-active);
 }
 
-.sidebar-item-title {
+.note-list-item-title {
   flex: 1;
   min-width: 0; /* lets the long title be cut with "..." */
   text-align: left;
@@ -90,21 +90,21 @@
 }
 
 /* The row already shows the hover, so the title button must not paint its own */
-.sidebar-item-title:hover:not(:disabled) {
+.note-list-item-title:hover:not(:disabled) {
   background: transparent;
 }
 
-.sidebar-item.selected .sidebar-item-title {
+.note-list-item.selected .note-list-item-title {
   color: var(--text-h);
 }
 
-.sidebar-item-star {
+.note-list-item-star {
   color: var(--accent);
   font-size: 0.8rem;
 }
 
 /* Delete only shows on hover or keyboard focus */
-.sidebar-item-delete {
+.note-list-item-delete {
   padding: 0 6px;
   background: transparent;
   border: none;
@@ -112,17 +112,17 @@
   opacity: 0;
 }
 
-.sidebar-item:hover .sidebar-item-delete,
-.sidebar-item-delete:focus-visible {
+.note-list-item:hover .note-list-item-delete,
+.note-list-item-delete:focus-visible {
   opacity: 1;
 }
 
-.sidebar-item-delete:hover:not(:disabled) {
+.note-list-item-delete:hover:not(:disabled) {
   background: transparent;
   color: var(--text-h);
 }
 
-.sidebar-empty {
+.note-list-empty {
   color: var(--text-dim);
   font-size: 0.85rem;
   text-align: center;

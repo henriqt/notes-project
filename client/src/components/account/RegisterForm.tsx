@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { API_BASE } from '../api/client'
+import { API_BASE } from '../../api/client'
 import './AuthForm.css'
 
 interface RegisterFormProps {

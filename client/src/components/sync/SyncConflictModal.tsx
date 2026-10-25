@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import type { SyncConflict } from '../api/syncService'
-import type { Note } from '../types/note'
-import './SyncConflictModal.css'
+import type { SyncConflict } from '../../api/syncService'
+import type { Note } from '../../types/note'
+import '../common/Modal.css'
 
 interface SyncConflictModalProps {
   conflicts: SyncConflict[]
@@ -75,54 +75,54 @@ export function SyncConflictModal({ conflicts, onResolve, onCancel }: SyncConfli
   }
 
   return (
-    <div className="sync-modal-overlay">
-      <div className="sync-modal">
-        <div className="sync-modal-header">
-          <span className="sync-modal-icon">⚠</span>
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-icon">⚠</span>
           <h2>Cloud Conflict</h2>
-          <button className="sync-modal-close" onClick={onCancel} aria-label="Cancel">
+          <button className="modal-close" onClick={onCancel} aria-label="Cancel">
             ×
           </button>
         </div>
 
-        <p className="sync-modal-description">
+        <p className="modal-description">
           {describeConflict(current)}
           {conflicts.length > 1 && ` (Conflict ${index + 1} of ${conflicts.length})`}
         </p>
 
-        <div className="sync-modal-options">
+        <div className="modal-options">
           <button
-            className={`sync-modal-option ${choice === 'server' ? 'selected' : ''}`}
+            className={`modal-option ${choice === 'server' ? 'selected' : ''}`}
             onClick={() => setChoice('server')}
           >
-            <span className="sync-modal-radio" />
-            <span className="sync-modal-icon-small">☁</span>
-            <span className="sync-modal-option-text">
+            <span className="modal-radio" />
+            <span className="modal-icon-small">☁</span>
+            <span className="modal-option-text">
               <strong>Server Save</strong>
               <span>{describeSide(current.server)}</span>
             </span>
           </button>
 
           <button
-            className={`sync-modal-option ${choice === 'local' ? 'selected' : ''}`}
+            className={`modal-option ${choice === 'local' ? 'selected' : ''}`}
             onClick={() => setChoice('local')}
           >
-            <span className="sync-modal-radio" />
-            <span className="sync-modal-icon-small">💾</span>
-            <span className="sync-modal-option-text">
+            <span className="modal-radio" />
+            <span className="modal-icon-small">💾</span>
+            <span className="modal-option-text">
               <strong>Local Save</strong>
               <span>{describeSide(current.local)}</span>
             </span>
           </button>
         </div>
 
-        <p className="sync-modal-warning">{describeOutcome(current, choice)}</p>
+        <p className="modal-warning">{describeOutcome(current, choice)}</p>
 
-        <div className="sync-modal-actions">
-          <button className="sync-modal-continue" onClick={handleContinue}>
+        <div className="modal-actions">
+          <button className="modal-continue" onClick={handleContinue}>
             {isLast ? 'Continue' : 'Next'}
           </button>
-          <button className="sync-modal-cancel" onClick={onCancel}>
+          <button className="modal-cancel" onClick={onCancel}>
             Cancel
           </button>
         </div>

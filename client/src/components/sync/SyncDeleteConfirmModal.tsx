@@ -1,4 +1,4 @@
-import './SyncConflictModal.css'
+import '../common/Modal.css'
 
 interface SyncDeleteConfirmModalProps {
   fromServer: string[] // titles that will be deleted from the server
@@ -40,19 +40,19 @@ export function SyncDeleteConfirmModal({
   onCancel,
 }: SyncDeleteConfirmModalProps) {
   return (
-    <div className="sync-modal-overlay">
-      <div className="sync-modal">
-        <div className="sync-modal-header">
-          <span className="sync-modal-icon">⚠</span>
+    <div className="modal-overlay">
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-icon">⚠</span>
           <h2>Confirm sync</h2>
-          <button className="sync-modal-close" onClick={onCancel} aria-label="Cancel">
+          <button className="modal-close" onClick={onCancel} aria-label="Cancel">
             ×
           </button>
         </div>
 
         {fromServer.length > 0 && (
           <>
-            <p className="sync-modal-description" style={{ marginBottom: 4 }}>
+            <p className="modal-description" style={{ marginBottom: 4 }}>
               {noteCount(fromServer.length)} will be deleted from the server:
             </p>
             <TitleList titles={fromServer} />
@@ -61,27 +61,27 @@ export function SyncDeleteConfirmModal({
 
         {fromDevice.length > 0 && (
           <>
-            <p className="sync-modal-description" style={{ marginBottom: 4 }}>
+            <p className="modal-description" style={{ marginBottom: 4 }}>
               {noteCount(fromDevice.length)} will be removed from this device:
             </p>
             <TitleList titles={fromDevice} />
           </>
         )}
 
-        <p className="sync-modal-warning">
+        <p className="modal-warning">
           Delete can't be undone. Keep brings the notes back instead: the ones deleted here are
           restored from the server, and the ones deleted on the server are created there again.
           Cancel decides later.
         </p>
 
-        <div className="sync-modal-actions">
-          <button className="sync-modal-continue" onClick={onConfirm}>
+        <div className="modal-actions">
+          <button className="modal-continue" onClick={onConfirm}>
             Delete
           </button>
-          <button className="sync-modal-cancel" onClick={onKeep}>
+          <button className="modal-cancel" onClick={onKeep}>
             Keep notes
           </button>
-          <button className="sync-modal-cancel" onClick={onCancel}>
+          <button className="modal-cancel" onClick={onCancel}>
             Cancel
           </button>
         </div>
