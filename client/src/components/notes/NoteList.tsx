@@ -24,7 +24,18 @@ export function NoteList({ notes, selectedNoteId, onSelectNote, onCreateNote, on
 
   return (
     <aside className="note-list">
-      <div className="note-list-toolbar">
+      <button className="note-list-new" onClick={onCreateNote}>
+        + New note
+      </button>
+
+      <div className="note-list-search-row">
+        <input
+          type="text"
+          className="note-list-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search notes..."
+        />
         <button
           className="note-list-icon-btn"
           onClick={() => setOnlyBookmarked((v) => !v)}
@@ -35,18 +46,6 @@ export function NoteList({ notes, selectedNoteId, onSelectNote, onCreateNote, on
           ★
         </button>
       </div>
-
-      <button className="note-list-new" onClick={onCreateNote}>
-        + New note
-      </button>
-
-      <input
-        type="text"
-        className="note-list-search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search notes..."
-      />
 
       <ul className="note-list-notes-list">
         {filteredNotes.map((note) => (

@@ -10,11 +10,6 @@
   background: var(--bg-panel);
 }
 
-.note-list-toolbar {
-  display: flex;
-  justify-content: space-between;
-}
-
 .note-list-icon-btn {
   width: 28px;
   height: 28px;
@@ -48,8 +43,15 @@
   color: var(--text-h);
 }
 
+.note-list-search-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .note-list-search {
-  width: 100%;
+  flex: 1;
+  min-width: 0; /* lets the input shrink next to the star */
 }
 
 /* scrolls on its own so a long list of notes doesn't push the page taller */
