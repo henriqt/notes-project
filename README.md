@@ -18,6 +18,8 @@ Notes live on your device and work offline, with no account needed. If you want 
 - Bookmarks (star) on each note
 - Status bar with live line and character counters
 - Safe preview: Markdown is rendered with `marked` and sanitized with `DOMPurify`
+- Notes anchored to a page: the **+** button in the drawer creates a note linked to the page in the active tab, and the context menu item **Save selection as note** saves the selected text with the page URL, title and date
+- A source card at the top of the preview shows the page domain (as a link), the date and the saved snippet
 
 ### Local-first storage
 - Notes are stored in `chrome.storage.local`, so the app works offline and without logging in
@@ -157,6 +159,7 @@ Every note query is filtered by the logged-in user.
 - JWT validated for issuer, audience, lifetime and signing key; the API refuses to start with a missing or short key
 - Parameterized SQL (Dapper) and a 1 MB request size limit
 - CORS restricted to the extension; secrets stay out of Git (`.env`, `appsettings.Development.json`, `*.pem`)
+- The `tabs` permission lets the panel read the URL and title of the active tab. Page URLs saved in notes stay in `chrome.storage.local` on your device and are not sent anywhere (sync is still limited to title, content and bookmark)
 
 ---
 
@@ -172,10 +175,11 @@ In development.
 - ✅ Login and registration inside the side panel
 - ✅ Task lists with clickable checkboxes
 - ✅ JWT API with PostgreSQL, rate limiting and input validation
+- ✅ Notes anchored to pages, with a context menu to save a selection as a note
 
 ### Planned
 - 🔲 Docker setup for the full app (API and database with a single `docker compose up`)
-- 🔲 Notes anchored to the current page (save a selection as a note, notes grouped by site)
+- 🔲 Drawer sections for notes from the current page and site, and related notes when you return to a page
 - 🔲 Runnable HTTP blocks and smart paste formatting for developer notes
 - 🔲 AI-assisted note formatting
 - 🔲 Personal integrations (for example Spotify and Steam)
