@@ -86,7 +86,7 @@
   color: var(--accent);
 }
 
-/* Bottom bar with the note counters, like the status bar in Obsidian */
+/* Bottom bar with the note counters, like and editor status bar */
 .status-bar {
   display: flex;
   align-items: center;

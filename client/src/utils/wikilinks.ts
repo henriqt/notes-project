@@ -1,4 +1,4 @@
-// Converts Obsidian-style wikilinks [[Title]] into standard Markdown links
+// Converts [[Title]] wikilinks into standard Markdown links
 // using the custom `wikilink://` scheme, so that `marked` renders
 // them as a normal <a> tag, which we then intercept to navigate.
 const WIKILINK_REGEX = /\[\[([^[\]]+)\]\]/g
