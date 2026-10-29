@@ -91,7 +91,7 @@ export function NotesPage() {
   async function handleCreateNote() {
     try {
       const newNote = await createLocalNote('New note', '')
-      setNotes((prev) => [newNote, ...prev])
+      setNotes(await getLocalNotes())
       setSelectedNoteId(newNote.id)
       setDrawerOpen(false)
     } catch {
@@ -113,7 +113,7 @@ export function NotesPage() {
       // The note title is the page title (max 200, same as the API)
       const title = page.title.trim().slice(0, 200) || page.domain
       const newNote = await createLocalNote(title, '', source)
-      setNotes((prev) => [newNote, ...prev])
+      setNotes(await getLocalNotes())
       setSelectedNoteId(newNote.id)
       setDrawerOpen(false)
     } catch {
