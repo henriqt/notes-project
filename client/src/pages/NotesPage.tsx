@@ -602,6 +602,7 @@ export function NotesPage() {
 
                 <NoteList
                   notes={notes}
+                  page={page}
                   selectedNoteId={selectedNoteId}
                   onSelectNote={handleSelectNote}
                   onCreateNote={handleCreateNote}

@@ -55,13 +55,30 @@
 }
 
 /* scrolls on its own so a long list of notes doesn't push the page taller */
-.note-list-notes-list {
+.note-list-scroll {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+.note-list-notes-list {
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.note-list-section-title {
+  margin: 8px 0 4px;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.note-list-section-title:first-child {
+  margin-top: 0;
 }
 
 .note-list-item {
