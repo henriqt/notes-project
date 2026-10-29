@@ -1,4 +1,4 @@
-import type { Note } from '../types/note'
+import type { Note, NoteSource } from '../types/note'
 
 const STORAGE_KEY = 'notes'
 const TOMBSTONES_KEY = 'deletedNotes'
@@ -20,7 +20,11 @@ export async function saveLocalNotes(notes: Note[]): Promise<void> {
   await chrome.storage.local.set({ [STORAGE_KEY]: notes })
 }
 
-export async function createLocalNote(title: string, content: string): Promise<Note> {
+export async function createLocalNote(
+  title: string,
+  content: string,
+  source?: NoteSource,
+): Promise<Note> {
   const notes = await getLocalNotes()
   const now = new Date().toISOString()
 
@@ -32,6 +36,7 @@ export async function createLocalNote(title: string, content: string): Promise<N
     createdAt: now,
     updatedAt: now,
     userId: 0, // unused until sync
+    source,
   }
 
   await saveLocalNotes([newNote, ...notes])

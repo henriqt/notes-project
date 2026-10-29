@@ -1,0 +1,40 @@
+.source-card {
+  flex-shrink: 0;
+  padding: 6px 8px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+}
+
+.source-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.source-card-top a {
+  min-width: 0;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-card-date {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* Long snippets are cut at 3 lines so the card doesn't take the whole pane */
+.source-card-snippet {
+  margin: 6px 0 0;
+  padding-left: 8px;
+  border-left: 2px solid var(--accent-border);
+  color: var(--text);
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

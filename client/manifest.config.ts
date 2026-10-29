@@ -35,7 +35,7 @@ export default defineManifest({
     48: 'icons/icon48.png',
     128: 'icons/icon128.png',
   },
-  permissions: ['storage', 'sidePanel'],
+  permissions: ['storage', 'sidePanel', 'tabs', 'contextMenus'],
   host_permissions: ['https://localhost:7269/*'],
   side_panel: {
   default_path: 'index.html',

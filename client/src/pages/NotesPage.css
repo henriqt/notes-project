@@ -69,9 +69,9 @@
 .drawer-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
   min-height: 36px;
-  padding: 0 8px 0 12px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -90,4 +90,24 @@
   border-top: 1px solid var(--border);
   flex-shrink: 0;
   font-size: 0.85rem;
+}
+
+/* Domain of the page in the active tab, with the + button */
+.drawer-page {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px 4px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.drawer-page-domain {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

@@ -3,6 +3,7 @@ import type { Note } from '../../types/note'
 import { NotePreview } from './NotePreview'
 import { toggleTask } from '../../utils/tasks'
 import './NoteEditor.css'
+import { SourceCard } from './SourceCard'
 
 interface NoteEditorProps {
   note: Note
@@ -213,6 +214,7 @@ export function NoteEditor({ note, onSave, onWikilinkClick, onToggleBookmark, on
       ) : (
         <>
           <h2 className="preview-title">{title || 'Untitled'}</h2>
+          {note.source && <SourceCard source={note.source} />}
           <NotePreview content={content} onWikilinkClick={onWikilinkClick} onToggleTask={handleToggleTask} />
         </>
       )}

@@ -10,7 +10,7 @@ import {
   getSyncEnabled,
   saveSyncEnabled,
 } from '../api/localStore'
-import type { Note } from '../types/note'
+import type { Note, NoteSource } from '../types/note'
 import { NoteList } from '../components/notes/NoteList'
 import { NoteEditor } from '../components/notes/NoteEditor'
 import { syncWikilinksOnSave } from '../utils/wikilinkSync'
@@ -32,6 +32,7 @@ import { SyncToggle } from '../components/sync/SyncToggle'
 import { LoginForm } from '../components/account/LoginForm'
 import { RegisterForm } from '../components/account/RegisterForm'
 import { EmptyState } from '../components/notes/EmptyState'
+import { usePageContext } from '../hooks/usePageContext'
 
 // One status value instead of several booleans
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
@@ -59,6 +60,7 @@ export function NotesPage() {
   const [wikilinkNotice, setWikilinkNotice] = useState('')
   const [authNotice, setAuthNotice] = useState('')
   const { isAuthenticated, login, logout } = useAuth()
+  const page = usePageContext()
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle')
   const [syncEnabled, setSyncEnabled] = useState(false)
   const [pendingConflicts, setPendingConflicts] = useState<SyncConflict[] | null>(null)
@@ -89,6 +91,28 @@ export function NotesPage() {
   async function handleCreateNote() {
     try {
       const newNote = await createLocalNote('New note', '')
+      setNotes((prev) => [newNote, ...prev])
+      setSelectedNoteId(newNote.id)
+      setDrawerOpen(false)
+    } catch {
+      setError('Failed to create note')
+    }
+  }
+
+  // Creates a note anchored to the page in the active tab
+  async function handleCreatePageNote() {
+    if (!page) return
+
+    const source: NoteSource = {
+      url: page.url,
+      title: page.title,
+      capturedAt: new Date().toISOString(),
+    }
+
+    try {
+      // The note title is the page title (max 200, same as the API)
+      const title = page.title.trim().slice(0, 200) || page.domain
+      const newNote = await createLocalNote(title, '', source)
       setNotes((prev) => [newNote, ...prev])
       setSelectedNoteId(newNote.id)
       setDrawerOpen(false)
@@ -414,6 +438,21 @@ export function NotesPage() {
     }
   }, [])
 
+  // The background script saves notes (context menu) while the panel is open.
+  // storage.onChanged tells the panel, so the list updates without reopening.
+  useEffect(() => {
+    function handleStorageChange(
+      changes: Record<string, chrome.storage.StorageChange>,
+      areaName: string,
+    ) {
+      if (areaName !== 'local' || !changes.notes) return
+      setNotes((changes.notes.newValue as Note[] | undefined) ?? [])
+    }
+
+    chrome.storage.onChanged.addListener(handleStorageChange)
+    return () => chrome.storage.onChanged.removeListener(handleStorageChange)
+  }, [])
+
   // Offline with the toggle on: full check again every few seconds
   // and as soon as the browser says the connection is back
   useEffect(() => {
@@ -534,7 +573,6 @@ export function NotesPage() {
               <div className="drawer-scrim" onClick={() => setDrawerOpen(false)} />
               <aside className="drawer">
                 <div className="drawer-header">
-                  <span className="drawer-title">Notes</span>
                   <button
                     className="pane-action"
                     onClick={() => setDrawerOpen(false)}
@@ -543,7 +581,24 @@ export function NotesPage() {
                   >
                     ✕
                   </button>
+                  <span className="drawer-title">Notes</span>
                 </div>
+
+                {page && (
+                  <div className="drawer-page">
+                    <span className="drawer-page-domain" title={page.url}>
+                      {page.domain}
+                    </span>
+                    <button
+                      className="pane-action"
+                      onClick={handleCreatePageNote}
+                      aria-label="New note from this page"
+                      title="New note from this page"
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
 
                 <NoteList
                   notes={notes}
