@@ -195,7 +195,7 @@ export function NoteEditor({ note, onSave, onWikilinkClick, onToggleBookmark, on
       {mode === 'edit' ? (
         <>
           <input
-            className="editor-title"
+            className="note-title editor-title"
             value={title}
             onChange={handleTitleChange}
             placeholder="Untitled"
@@ -213,7 +213,7 @@ export function NoteEditor({ note, onSave, onWikilinkClick, onToggleBookmark, on
         </>
       ) : (
         <>
-          <h2 className="preview-title">{title || 'Untitled'}</h2>
+          <h2 className="note-title preview-title">{title || 'Untitled'}</h2>
           {note.source && <SourceCard source={note.source} />}
           <NotePreview content={content} onWikilinkClick={onWikilinkClick} onToggleTask={handleToggleTask} />
         </>
