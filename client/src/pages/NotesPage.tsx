@@ -13,7 +13,6 @@ import {
 import type { Note, NoteSource } from '../types/note'
 import { NoteList } from '../components/notes/NoteList'
 import { NoteEditor } from '../components/notes/NoteEditor'
-import { syncWikilinksOnSave } from '../utils/wikilinkSync'
 import { useAuth } from '../auth/useAuth'
 import { AUTH_EXPIRED_EVENT } from '../api/client'
 import {
@@ -57,7 +56,6 @@ export function NotesPage() {
   const [selectedNoteId, setSelectedNoteId] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [wikilinkNotice, setWikilinkNotice] = useState('')
   const [authNotice, setAuthNotice] = useState('')
   const { isAuthenticated, login, logout } = useAuth()
   const page = usePageContext()
@@ -124,7 +122,6 @@ export function NotesPage() {
   async function handleSaveNote(updated: Note) {
     try {
       await updateLocalNote(updated)
-      await syncWikilinksOnSave(updated.content)
 
       const refreshed = await getLocalNotes()
       setNotes(refreshed)
@@ -154,16 +151,6 @@ export function NotesPage() {
       }
     } catch {
       setError('Failed to update bookmark')
-    }
-  }
-
-  function handleWikilinkClick(title: string) {
-    const target = notes.find((n) => n.title.toLowerCase() === title.toLowerCase())
-    if (target) {
-      setWikilinkNotice('')
-      setSelectedNoteId(target.id)
-    } else {
-      setWikilinkNotice(`The note "${title}" doesn't exist yet.`)
     }
   }
 
@@ -509,7 +496,6 @@ export function NotesPage() {
       <div className="notes-body">
         <main className="notes-main">
           {error && <p role="alert">{error}</p>}
-          {wikilinkNotice && <p role="status">{wikilinkNotice}</p>}
           {authNotice && !isAuthenticated && <p role="status">{authNotice}</p>}
 
           {authView && !isAuthenticated ? (
@@ -547,7 +533,6 @@ export function NotesPage() {
                 key={`${selectedNote.id}-${syncVersion}`}
                 note={selectedNote}
                 onSave={handleSaveNote}
-                onWikilinkClick={handleWikilinkClick}
                 onToggleBookmark={() => handleToggleBookmark(selectedNote.id)}
                 onOpenDrawer={() => setDrawerOpen(true)}
               />

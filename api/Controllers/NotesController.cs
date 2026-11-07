@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NotesProjectAPI.Database;
 using NotesProjectAPI.Models;
-using NotesProjectAPI.Services;
 using System.Security.Claims;
 
 namespace NotesProjectAPI.Controllers
@@ -84,9 +83,6 @@ namespace NotesProjectAPI.Controllers
             note.CreatedAt = now;
             note.UpdatedAt = now;
 
-            // Update NoteLinks from the [[wikilinks]]
-            await NoteLinkService.SyncLinksAsync(connection, note.Id, userId, note.Content);
-
             return CreatedAtAction(nameof(GetNote), new { id = note.Id }, note);
         }
 
@@ -122,9 +118,6 @@ namespace NotesProjectAPI.Controllers
             if (rowsAffected == 0)
                 return NotFound();
 
-            // Content may have changed, update the links
-            await NoteLinkService.SyncLinksAsync(connection, id, userId, note.Content);
-
             return NoContent();
         }
 
@@ -135,7 +128,6 @@ namespace NotesProjectAPI.Controllers
             using var connection = _databaseService.CreateConnection();
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            // NoteLinks are deleted by ON DELETE CASCADE
             var rowsAffected = await connection.ExecuteAsync(
                 "DELETE FROM Notes WHERE Id = @Id AND UserId = @UserId",
                 new { Id = id, UserId = userId });

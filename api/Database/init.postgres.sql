@@ -16,15 +16,3 @@ CREATE TABLE IF NOT EXISTS Notes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notes_userid ON Notes(UserId);
-
-CREATE TABLE IF NOT EXISTS NoteLinks (
-    Id            SERIAL PRIMARY KEY,
-    SourceNoteId  INTEGER NOT NULL REFERENCES Notes(Id) ON DELETE CASCADE,
-    TargetNoteId  INTEGER NOT NULL REFERENCES Notes(Id) ON DELETE CASCADE,
-    UserId        INTEGER NOT NULL REFERENCES Users(Id) ON DELETE CASCADE,
-    UNIQUE (SourceNoteId, TargetNoteId)
-);
-
-CREATE INDEX IF NOT EXISTS idx_notelinks_source ON NoteLinks(SourceNoteId);
-CREATE INDEX IF NOT EXISTS idx_notelinks_target ON NoteLinks(TargetNoteId);
-CREATE INDEX IF NOT EXISTS idx_notelinks_userid ON NoteLinks(UserId);

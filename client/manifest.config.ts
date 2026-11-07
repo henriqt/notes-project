@@ -21,7 +21,7 @@ export default defineManifest({
   name: 'Notes Project',
   version: '1.0.0',
   key: getExtensionKey(),
-  description: 'Markdown note editor with wikilinks and optional sync.',
+  description: 'Markdown note editor with optional sync.',
   action: {
     default_title: 'Notes Project',
     default_icon: {

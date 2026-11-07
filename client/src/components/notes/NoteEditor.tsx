@@ -3,12 +3,10 @@ import type { Note } from '../../types/note'
 import { NotePreview } from './NotePreview'
 import { toggleTask } from '../../utils/tasks'
 import './NoteEditor.css'
-import { SourceCard } from './SourceCard'
 
 interface NoteEditorProps {
   note: Note
   onSave: (updated: Note) => void
-  onWikilinkClick: (title: string) => void
   onToggleBookmark: () => void
   onOpenDrawer: () => void
 }
@@ -18,7 +16,7 @@ const MAX_TITLE_LENGTH = 200
 const MAX_CONTENT_LENGTH = 200_000
 
 // The parent uses key={note.id}, so changing notes remounts this
-export function NoteEditor({ note, onSave, onWikilinkClick, onToggleBookmark, onOpenDrawer }: NoteEditorProps) {
+export function NoteEditor({ note, onSave, onToggleBookmark, onOpenDrawer }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
   // New notes open in Edit, existing ones in Preview
@@ -207,15 +205,14 @@ export function NoteEditor({ note, onSave, onWikilinkClick, onToggleBookmark, on
             onClick={handleTextareaClick}
             onKeyDown={handleTextareaKeyDown}
             maxLength={MAX_CONTENT_LENGTH}
-            placeholder="Start writing in Markdown... use [[Note Title]] to link notes"
+            placeholder="Start writing in Markdown..."
             className="editor-textarea"
           />
         </>
       ) : (
         <>
           <h2 className="note-title preview-title">{title || 'Untitled'}</h2>
-          {note.source && <SourceCard source={note.source} />}
-          <NotePreview content={content} onWikilinkClick={onWikilinkClick} onToggleTask={handleToggleTask} />
+          <NotePreview content={content} onToggleTask={handleToggleTask} />
         </>
       )}
 

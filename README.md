@@ -1,6 +1,6 @@
 # Notes Project
 
-A **local-first Markdown notes extension** that lives in the browser's side panel, with `[[wikilinks]]` between notes and **optional sync** to your own ASP.NET Core API.
+A **local-first Markdown notes extension** that lives in the browser's side panel, with **optional sync** to your own ASP.NET Core API.
 
 Notes live on your device and work offline, with no account needed. If you want them on more than one machine, log in and turn on sync.
 
@@ -13,7 +13,6 @@ Notes live on your device and work offline, with no account needed. If you want 
 - Notes drawer with search (title and content), bookmark filter and per-note delete
 - Markdown editor with an Edit / Preview toggle (one pane at a time, made for a narrow panel)
 - Auto-save after 1 second of inactivity
-- `[[Wikilinks]]` between notes: clickable in the preview, and a link to a note that doesn't exist yet creates an empty one
 - Task lists: click a `- [ ]` box to toggle it in the editor or in the preview, and Enter on a task line starts the next one
 - Bookmarks (star) on each note
 - Status bar with live line and character counters
@@ -51,7 +50,6 @@ notes-project/
 
 - The extension is the only client. The API is used only for login and sync.
 - The API answers only to the extension: CORS allows a single `chrome-extension://` origin.
-- The same wikilink logic exists on both sides (`NoteLinkService.cs` on the server and `wikilinkSync.ts` in the client).
 - Sync compares a content hash of each note against the hash saved at the last sync to tell which side changed, and keeps tombstones for notes deleted offline.
 
 ---
@@ -169,7 +167,6 @@ In development.
 
 ### Completed
 - ✅ Local-first Markdown editor with an Edit / Preview toggle
-- ✅ Wikilinks with automatic creation of missing notes
 - ✅ Side panel UI with a notes drawer, search and bookmarks
 - ✅ Optional sync with conflict resolution and deletion confirmation
 - ✅ Login and registration inside the side panel
