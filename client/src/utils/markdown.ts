@@ -12,7 +12,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
 })
 
 export function renderNoteHtml(content: string): string {
-  const rawHtml = marked.parse(content, { async: false }) as string
+  const rawHtml = marked.parse(content, { async: false, breaks: true }) as string
 
   return DOMPurify.sanitize(rawHtml)
 }

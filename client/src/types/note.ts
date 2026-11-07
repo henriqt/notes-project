@@ -2,7 +2,6 @@
 export interface NoteSource {
   url: string
   title: string
-  snippet?: string // selected text, filled by the context menu (step 2c)
   capturedAt: string // ISO date
 }
 

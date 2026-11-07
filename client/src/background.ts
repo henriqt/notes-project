@@ -4,6 +4,7 @@ chrome.sidePanel
   .catch((err) => console.error('side panel setup failed', err))
 
 import { createLocalNote } from './api/localStore'
+import { buildPageNoteContent } from './utils/pageNote'
 
 const MENU_ID = 'save-selection'
 // Same idea as the title limit: keeps a huge selection from bloating the note
@@ -25,12 +26,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!url) return
 
   const title = tab?.title?.trim().slice(0, 200) || 'New note'
+  const snippet = info.selectionText.trim().slice(0, MAX_SNIPPET_LENGTH)
 
   try {
-    await createLocalNote(title, '', {
+    await createLocalNote(title, buildPageNoteContent(url, tab?.title ?? '', snippet), {
       url,
       title: tab?.title ?? '',
-      snippet: info.selectionText.trim().slice(0, MAX_SNIPPET_LENGTH),
       capturedAt: new Date().toISOString(),
     })
   } catch (err) {
