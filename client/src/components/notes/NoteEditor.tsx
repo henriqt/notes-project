@@ -4,11 +4,15 @@ import { NotePreview } from './NotePreview'
 import { toggleTask } from '../../utils/tasks'
 import './NoteEditor.css'
 
+export type EditorMode = 'edit' | 'preview'
+
 interface NoteEditorProps {
   note: Note
   onSave: (updated: Note) => void
   onToggleBookmark: () => void
   onOpenDrawer: () => void
+  initialMode?: EditorMode // kept by the parent, so a reload of the editor doesn't reset it
+  onModeChange: (mode: EditorMode) => void
 }
 
 // Same limits as the API (Note.cs)
@@ -16,11 +20,13 @@ const MAX_TITLE_LENGTH = 200
 const MAX_CONTENT_LENGTH = 200_000
 
 // The parent uses key={note.id}, so changing notes remounts this
-export function NoteEditor({ note, onSave, onToggleBookmark, onOpenDrawer }: NoteEditorProps) {
+export function NoteEditor({ note, initialMode, onSave, onToggleBookmark, onOpenDrawer, onModeChange }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
-  // New notes open in Edit, existing ones in Preview
-  const [mode, setMode] = useState<'edit' | 'preview'>(note.content === '' ? 'edit' : 'preview')
+  // Without a remembered mode: new notes open in Edit, existing ones in Preview
+  const [mode, setMode] = useState<EditorMode>(
+    initialMode ?? (note.content === '' ? 'edit' : 'preview'),
+  )
   const saveTimeout = useRef<number | undefined>(undefined)
 
   // Latest values in a ref, so the cleanup on unmount can save them
@@ -59,6 +65,11 @@ export function NoteEditor({ note, onSave, onToggleBookmark, onOpenDrawer }: Not
   function handleTitleChange(e: ChangeEvent<HTMLInputElement>) {
     setTitle(e.target.value)
     scheduleSave(e.target.value, content)
+  }
+
+  function changeMode(next: EditorMode) {
+    setMode(next)
+    onModeChange(next)
   }
 
   function handleContentChange(e: ChangeEvent<HTMLTextAreaElement>) {
@@ -167,13 +178,13 @@ export function NoteEditor({ note, onSave, onToggleBookmark, onOpenDrawer }: Not
         <div className="pane-tabs">
           <button
             className={`pane-tab ${mode === 'edit' ? 'active' : ''}`}
-            onClick={() => setMode('edit')}
+            onClick={() => changeMode('edit')}
           >
             Edit
           </button>
           <button
             className={`pane-tab ${mode === 'preview' ? 'active' : ''}`}
-            onClick={() => setMode('preview')}
+            onClick={() => changeMode('preview')}
           >
             Preview
           </button>
