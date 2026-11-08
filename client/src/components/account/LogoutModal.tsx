@@ -9,7 +9,7 @@ interface LogoutModalProps {
 
 // Shown when the user clicks Logout. Logging out alone keeps every note on
 // this device; the checkbox is the only way to clear them from the UI.
-// Reuses the classes from SyncConflictModal.css.
+// Reuses the classes from Modal.css.
 export function LogoutModal({ unsyncedCount, onConfirm, onCancel }: LogoutModalProps) {
   const [clearLocalNotes, setClearLocalNotes] = useState(false)
 

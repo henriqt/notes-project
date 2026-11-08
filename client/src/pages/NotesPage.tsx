@@ -103,11 +103,7 @@ export function NotesPage() {
   async function handleCreatePageNote() {
     if (!page) return
 
-    const source: NoteSource = {
-      url: page.url,
-      title: page.title,
-      capturedAt: new Date().toISOString(),
-    }
+    const source: NoteSource = { url: page.url }
 
     try {
       // The note title is the page title (max 200, same as the API)
@@ -256,7 +252,7 @@ export function NotesPage() {
   }
 
   // Full check: plan, then conflict modal, then delete confirmation, then apply.
-  // Runs when the toggle is turned on, when the tab opens and when the connection comes back.
+  // Runs when the toggle is turned on, when the panel opens and when the connection comes back.
   async function runFullSync() {
     if (busyRef.current) return
     busyRef.current = true
@@ -391,7 +387,7 @@ export function NotesPage() {
         if (enabled && isAuthenticated) {
           syncEnabledRef.current = true
           setSyncEnabled(true)
-          runFullSync() // full check when the tab opens
+          runFullSync() // full check when the panel opens
         } else if (enabled) {
           await saveSyncEnabled(false) // there is no valid token anymore
         }

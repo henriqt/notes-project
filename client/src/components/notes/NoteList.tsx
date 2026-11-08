@@ -48,14 +48,6 @@ export function NoteList({ notes, page, selectedNoteId, onSelectNote, onCreateNo
   const siteNotes: Note[] = []
   const otherNotes: Note[] = []
 
-  console.table(
-    filteredNotes.map((note) => ({
-      id: note.id,
-      title: note.title,
-      url: note.source?.url,
-    })),
-  )
-
   for (const note of filteredNotes) {
     if (page && note.source && withoutHash(note.source.url) === withoutHash(page.url)) {
       pageNotes.push(note)

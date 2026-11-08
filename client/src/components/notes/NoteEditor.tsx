@@ -19,7 +19,7 @@ interface NoteEditorProps {
 const MAX_TITLE_LENGTH = 200
 const MAX_CONTENT_LENGTH = 200_000
 
-// The parent uses key={note.id}, so changing notes remounts this
+// The parent changes the key when another note is selected or a full sync runs, so this remounts
 export function NoteEditor({ note, initialMode, onSave, onToggleBookmark, onOpenDrawer, onModeChange }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)

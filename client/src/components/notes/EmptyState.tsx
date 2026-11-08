@@ -4,7 +4,7 @@ import './EmptyState.css'
 
 interface EmptyStateProps {
   onCreateNote: () => void
-  headerRight?: ReactNode // same sync controls the editor shows
+  headerRight?: ReactNode // button that opens the notes drawer
 }
 
 // No Edit/Preview tabs and no divider: there is nothing to edit yet.

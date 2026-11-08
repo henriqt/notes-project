@@ -34,9 +34,3 @@ export async function deleteNote(id: number): Promise<void> {
   const response = await authFetch(`/notes/${id}`, { method: 'DELETE' })
   if (!response.ok && response.status !== 404) throw new Error('Failed to delete note')
 }
-
-export async function toggleBookmark(id: number): Promise<Note> {
-  const response = await authFetch(`/notes/${id}/bookmark`, { method: 'PATCH' })
-  if (!response.ok) throw new Error('Failed to toggle bookmark')
-  return response.json()
-}

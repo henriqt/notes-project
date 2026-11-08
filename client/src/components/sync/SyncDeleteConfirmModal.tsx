@@ -31,7 +31,7 @@ function TitleList({ titles }: { titles: string[] }) {
 
 // Shown before a sync applies deletions that nobody was asked about: notes
 // deleted here that still exist on the server, and notes deleted on the
-// server that still exist here. Reuses the classes from SyncConflictModal.css.
+// server that still exist here. Reuses the classes from Modal.css.
 export function SyncDeleteConfirmModal({
   fromServer,
   fromDevice,

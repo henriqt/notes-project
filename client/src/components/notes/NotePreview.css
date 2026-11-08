@@ -103,8 +103,10 @@
 .note-preview code {
   display: inline;
   padding: 0.15em 0.4em;
+  font-family: var(--mono);
   font-size: 0.85em;
   line-height: inherit;
+  color: var(--text-h);
   background: var(--code-bg);
   border-radius: 4px;
 }

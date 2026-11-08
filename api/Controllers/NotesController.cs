@@ -137,38 +137,5 @@ namespace NotesProjectAPI.Controllers
 
             return NoContent();
         }
-
-        // PATCH: api/Notes/5/bookmark
-        [HttpPatch("{id}/bookmark")]
-        public async Task<IActionResult> ToggleBookmark(int id)
-        {
-            using var connection = _databaseService.CreateConnection();
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            var note = await connection.QueryFirstOrDefaultAsync<Note>(
-                "SELECT * FROM Notes WHERE Id = @Id AND UserId = @UserId",
-                new { Id = id, UserId = userId });
-
-            if (note == null)
-                return NotFound();
-
-            note.IsBookmarked = !note.IsBookmarked;
-            note.UpdatedAt = DateTime.UtcNow;
-
-            await connection.ExecuteAsync(@"
-                UPDATE Notes
-                SET IsBookmarked = @IsBookmarked,
-                    UpdatedAt = @UpdatedAt
-                WHERE Id = @Id AND UserId = @UserId",
-                new
-                {
-                    note.IsBookmarked,
-                    note.UpdatedAt,
-                    note.Id,
-                    UserId = userId
-                });
-
-            return Ok(note);
-        }
     }
 }

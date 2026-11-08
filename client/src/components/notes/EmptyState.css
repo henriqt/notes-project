@@ -1,4 +1,4 @@
-/* Only the controls, pushed to the right */
+/* Only the drawer button, kept on the left */
 .empty-header {
   justify-content: flex-start;
 }

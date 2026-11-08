@@ -18,7 +18,7 @@ import { hashNote } from '../utils/noteHash'
 import type { Note } from '../types/note'
 
 // A note that exists on both sides
-export interface SyncPair {
+interface SyncPair {
   local: Note
   server: Note
 }

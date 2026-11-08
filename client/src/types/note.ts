@@ -1,8 +1,6 @@
 // Where a note was captured from (the page in the active tab)
 export interface NoteSource {
   url: string
-  title: string
-  capturedAt: string // ISO date
 }
 
 export interface Note {

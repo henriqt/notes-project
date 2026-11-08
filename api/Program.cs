@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using NotesProjectAPI.Database;
@@ -12,7 +9,7 @@ using System.Threading.RateLimiting;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.Configure<Microsoft.AspNetCore.Routing.RouteOptions>(options => options.LowercaseUrls = true);
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAuthorization(options =>
 {
@@ -125,9 +122,6 @@ app.UseCors("AllowFrontend");
 
 // After CORS so 429 answers also carry the CORS headers
 app.UseRateLimiter();
-
-app.UseDefaultFiles(); // Serve index.html by default
-app.UseStaticFiles(); // enables wwwroot folder for static files
 
 // Authentication first, then authorization
 app.UseAuthentication();

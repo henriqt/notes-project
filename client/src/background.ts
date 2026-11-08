@@ -29,11 +29,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const snippet = info.selectionText.trim().slice(0, MAX_SNIPPET_LENGTH)
 
   try {
-    await createLocalNote(title, buildPageNoteContent(url, tab?.title ?? '', snippet), {
-      url,
-      title: tab?.title ?? '',
-      capturedAt: new Date().toISOString(),
-    })
+    await createLocalNote(title, buildPageNoteContent(url, tab?.title ?? '', snippet), { url })
   } catch (err) {
     console.error('save selection failed', err)
   }

@@ -5,15 +5,6 @@ import manifest from './manifest.config.ts'
 
 export default defineConfig({
   plugins: [react(), crx({ manifest })],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://localhost:7269', // .NET API port
-        changeOrigin: true,
-        secure: false, // dev HTTPS certificate is self-signed
-      },
-    },
-  },
   build: {
     rollupOptions: {
       input: {
