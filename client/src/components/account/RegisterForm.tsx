@@ -39,7 +39,13 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
       setSuccess(true)
       setTimeout(onRegistered, 1500)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed')
+      setError(
+        err instanceof TypeError
+          ? "Can't reach the server. Try again in a moment."
+          : err instanceof Error
+            ? err.message
+            : 'Registration failed',
+      )
     }
   }
 

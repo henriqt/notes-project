@@ -27,6 +27,7 @@ import {
 import { SyncConflictModal } from '../components/sync/SyncConflictModal'
 import { SyncDeleteConfirmModal } from '../components/sync/SyncDeleteConfirmModal'
 import { LogoutModal } from '../components/account/LogoutModal'
+import { ServerUnreachableModal } from '../components/sync/ServerUnreachableModal'
 import { SyncToggle } from '../components/sync/SyncToggle'
 import { LoginForm } from '../components/account/LoginForm'
 import { RegisterForm } from '../components/account/RegisterForm'
@@ -64,6 +65,7 @@ export function NotesPage() {
   const [pendingConflicts, setPendingConflicts] = useState<SyncConflict[] | null>(null)
   const [pendingDeletions, setPendingDeletions] = useState<PendingDeletions | null>(null)
   const [logoutPrompt, setLogoutPrompt] = useState<{ unsyncedCount: number } | null>(null)
+  const [serverUnreachable, setServerUnreachable] = useState(false)
   // Which auth form is open (null = the notes screens)
   const [authView, setAuthView] = useState<'login' | 'register' | null>(null)
   // The notes drawer starts open, so the panel opens on the list
@@ -206,11 +208,14 @@ export function NotesPage() {
       return
     }
 
-    setError(
-      offline
-        ? "Can't reach the server. Keep syncing was not turned on."
-        : 'Failed to sync with the server',
-    )
+      if (offline) {
+      // The toggle was never turned on, so tell the user in a modal instead of a line of text
+      setServerUnreachable(true)
+      setSyncStatus('idle')
+      return
+    }
+
+    setError('Failed to sync with the server')
     setSyncStatus('error')
   }
 
@@ -616,6 +621,16 @@ export function NotesPage() {
           onConfirm={handleDeletionsConfirmed}
           onKeep={handleDeletionsKept}
           onCancel={handleSyncCancelled}
+        />
+      )}
+
+      {serverUnreachable && (
+        <ServerUnreachableModal
+          onRetry={() => {
+            setServerUnreachable(false)
+            runFullSync()
+          }}
+          onClose={() => setServerUnreachable(false)}
         />
       )}
 

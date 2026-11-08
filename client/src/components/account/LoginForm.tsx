@@ -37,7 +37,13 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
       setToken(data.token)
       onLoggedIn()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(
+        err instanceof TypeError
+          ? "Can't reach the server. Try again in a moment."
+          : err instanceof Error
+            ? err.message
+            : 'Login failed',
+      )
     }
   }
 
