@@ -55,7 +55,7 @@ export function clearToken(): void {
 }
 
 // fetch with the JWT header. On 401 it clears the token and fires AUTH_EXPIRED_EVENT.
-// No window.location here: inside the extension the router handles navigation.
+// No window.location here: the panel stays on the same page and AuthProvider reacts to the event.
 export async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {
   const token = getToken()
 
