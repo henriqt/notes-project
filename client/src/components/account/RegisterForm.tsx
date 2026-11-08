@@ -17,6 +17,11 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
     e.preventDefault()
     setError('')
 
+    if (!email.trim().includes('@')) {
+      setError('Enter a valid email address.')
+      return
+    }
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters.')
       return
@@ -50,7 +55,7 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
   }
 
     return (
-    <form className="auth-form" onSubmit={handleSubmit}>
+    <form className="auth-form" onSubmit={handleSubmit} noValidate>
       <h3 className="auth-title">Create account</h3>
 
       <div className="auth-field">
@@ -71,7 +76,6 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
           maxLength={72}
           required
         />

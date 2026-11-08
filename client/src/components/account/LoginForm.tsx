@@ -17,6 +17,11 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
     e.preventDefault()
     setError('')
 
+    if (!email.trim() || !password) {
+      setError('Enter your email and password.')
+      return
+    }
+
     try {
       const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
@@ -48,7 +53,7 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
   }
 
     return (
-    <form className="auth-form" onSubmit={handleSubmit}>
+    <form className="auth-form" onSubmit={handleSubmit} noValidate>
       <h3 className="auth-title">Sign in</h3>
 
       <div className="auth-field">
