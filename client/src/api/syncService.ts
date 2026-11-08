@@ -258,40 +258,21 @@ export async function applySync(
     }
   })
 
-  // 1. Create notes on the server in two steps. The server creates an empty note
-  // for each [[link]] it doesn't find, so sending "A" ([[B]]) before "B"
-  // would duplicate "B".
-  // Step 1: create every note with empty content
-  const shells = new Map<number, Note>() // local id -> note created on the server
+  // 1. Create the notes on the server with their content, then save the new
+  // serverIds right away. If a later step fails, the next sync won't upload
+  // these notes again.
   for (const local of toCreate) {
-    const shell = await createServerNote(local.title, '', local.isBookmarked)
-    shells.set(local.id, shell)
+    const created = await createServerNote(local.title, local.content, local.isBookmarked)
 
-    // Saved now, so if step 2 fails the next sync finishes the upload
     byId.set(local.id, {
       ...local,
-      serverId: shell.id,
-      baseHash: await hashNote({ title: local.title, content: '', isBookmarked: local.isBookmarked }),
+      serverId: created.id,
+      updatedAt: created.updatedAt,
+      baseHash: await hashNote(local),
     })
   }
   await mergeConcurrentEdits(localNotes, byId)
   await saveLocalNotes([...byId.values()])
-
-  // Step 2: every title exists now, so send the real content
-  for (const local of toCreate) {
-    const shell = shells.get(local.id)!
-
-    if (local.content) {
-      await updateServerNote({ ...shell, content: local.content })
-    }
-
-    byId.set(local.id, {
-      ...local,
-      serverId: shell.id,
-      updatedAt: local.content ? new Date().toISOString() : shell.updatedAt,
-      baseHash: await hashNote(local),
-    })
-  }
 
   // 2. Server-only notes: add to local storage
   for (const server of plan.toPull) {
