@@ -23,9 +23,9 @@ const MAX_CONTENT_LENGTH = 200_000
 export function NoteEditor({ note, initialMode, onSave, onToggleBookmark, onOpenDrawer, onModeChange }: NoteEditorProps) {
   const [title, setTitle] = useState(note.title)
   const [content, setContent] = useState(note.content)
-  // Without a remembered mode: new notes open in Edit, existing ones in Preview
+  // Empty notes always open in Edit, the others use the last mode the user chose (Preview at first)
   const [mode, setMode] = useState<EditorMode>(
-    initialMode ?? (note.content === '' ? 'edit' : 'preview'),
+    note.content === '' ? 'edit' : (initialMode ?? 'preview'),
   )
   const saveTimeout = useRef<number | undefined>(undefined)
 

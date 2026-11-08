@@ -68,8 +68,8 @@ export function NotesPage() {
   const [authView, setAuthView] = useState<'login' | 'register' | null>(null)
   // The notes drawer starts open, so the panel opens on the list
   const [drawerOpen, setDrawerOpen] = useState(true)
-  // Remembers the Edit/Preview choice, so a sync that reloads the editor keeps it
-  const [editorMode, setEditorMode] = useState<{ noteId: number; mode: EditorMode } | null>(null)
+  // Remembers the last Edit/Preview choice, so switching notes or a sync reload keeps it
+  const [editorMode, setEditorMode] = useState<EditorMode | null>(null)
 
   // Timers and listeners read the ref, because their state would be stale
   const syncEnabledRef = useRef(false)
@@ -530,8 +530,8 @@ export function NotesPage() {
               <NoteEditor
                 key={`${selectedNote.id}-${syncVersion}`}
                 note={selectedNote}
-                initialMode={editorMode?.noteId === selectedNote.id ? editorMode.mode : undefined}
-                onModeChange={(mode) => setEditorMode({ noteId: selectedNote.id, mode })}
+                initialMode={editorMode ?? undefined}
+                onModeChange={setEditorMode}
                 onSave={handleSaveNote}
                 onToggleBookmark={() => handleToggleBookmark(selectedNote.id)}
                 onOpenDrawer={() => setDrawerOpen(true)}
