@@ -111,3 +111,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Small line above the footer: who is logged in */
+.drawer-user {
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}

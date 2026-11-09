@@ -14,7 +14,7 @@ import type { Note, NoteSource } from '../types/note'
 import { NoteList } from '../components/notes/NoteList'
 import { NoteEditor, type EditorMode } from '../components/notes/NoteEditor'
 import { useAuth } from '../auth/useAuth'
-import { AUTH_EXPIRED_EVENT } from '../api/client'
+import { AUTH_EXPIRED_EVENT, getTokenUsername } from '../api/client'
 import {
   planSync,
   applySync,
@@ -599,6 +599,10 @@ export function NotesPage() {
                   onDeleteNote={handleDeleteNote}
                 />
 
+                <p className="drawer-user">
+                  {isAuthenticated ? `Signed in as ${getTokenUsername() ?? 'unknown'}` : 'Not signed in'}
+                </p>
+                
                 <div className="drawer-footer">{syncControls}</div>
               </aside>
             </>

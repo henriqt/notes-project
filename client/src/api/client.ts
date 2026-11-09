@@ -46,6 +46,21 @@ export function getTokenUserId(): string | undefined {
   return id === undefined || id === null ? undefined : String(id)
 }
 
+// Username from the token, or undefined if it can't be read
+export function getTokenUsername(): string | undefined {
+  const token = localStorage.getItem('token')
+  if (!token) return undefined
+
+  const payload = readPayload(token)
+  if (!payload) return undefined
+
+  // The claim key is a long URL, so match by the end of it
+  const key = Object.keys(payload).find((k) => k.endsWith('/claims/name'))
+  const name = (key ? payload[key] : undefined) ?? payload.unique_name ?? payload.name
+
+  return typeof name === 'string' ? name : undefined
+}
+
 export function setToken(token: string): void {
   localStorage.setItem('token', token)
 }
