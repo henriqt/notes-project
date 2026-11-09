@@ -12,6 +12,8 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 - Markdown editor with an Edit / Preview toggle, one pane at a time, made for a narrow panel. The chosen mode is kept when a sync reloads the editor.
 - Auto-save after 1 second of inactivity.
 - Notes drawer with search (title and content), a bookmark filter, and per-note delete.
+- The drawer shows who is logged in above the sync toggle ("Signed in as ...", or "Not signed in").
+- New notes with a repeated title are numbered: `New note`, `New note (1)`, `New note (2)`.
 - Bookmarks (star) on each note.
 - Status bar with live line and character counters.
 - Size limits match the API: 200 characters for titles, 200,000 for content.
@@ -44,12 +46,13 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 ### Account
 
 - Login and registration live inside the side panel (the **Log in** button in the drawer footer).
+- Accounts use a username instead of an email: 3 to 32 characters, with letters, numbers, `_` and `-`. Usernames are trimmed and lowercased, so `Foo` and `foo` are the same account.
 - Logout asks whether to also clear the notes stored on the device, and shows how many have unsynced changes.
 - When the session expires, sync is turned off and a notice asks the user to log in again.
 
 ### Security
 
-- Passwords are hashed with BCrypt (8 to 72 characters). Emails are normalized and validated on the server.
+- Passwords are hashed with BCrypt (8 to 72 characters). Usernames are normalized and validated on the server.
 - Login and register are rate limited to 10 requests per minute per IP.
 - JWT tokens last 2 hours and are validated for issuer, audience, lifetime, and signing key. The API refuses to start with a missing or short key.
 - Parameterized SQL (Dapper) and a 1 MB request size limit on the notes endpoints.
@@ -178,9 +181,9 @@ Tokens last 2 hours. After that the API answers `401`, and the extension turns s
 
 | Method | Endpoint | Description | Access |
 |---|---|---|---|
-| POST | `/api/auth/register` | Creates an account. | Public (rate limited) |
-| POST | `/api/auth/login` | Authenticates a user and returns a JWT token. | Public (rate limited) |
-| GET | `/api/users/me` | Gets the current user. | Authenticated |
+| POST | `/api/auth/register` | Creates an account with a username and a password. | Public (rate limited) |
+| POST | `/api/auth/login` | Authenticates a user and returns a JWT token and the username. | Public (rate limited) |
+| GET | `/api/users/me` | Gets the current user (id, username and creation date). | Authenticated |
 | GET | `/api/notes` | Lists the current user's notes. | Authenticated |
 | GET | `/api/notes/{id}` | Gets a specific note. | Owner |
 | POST | `/api/notes` | Creates a note. | Authenticated |
@@ -225,12 +228,12 @@ Request (`POST /api/auth/register` and `POST /api/auth/login`):
 
 ```json
 {
-  "email": "joao@example.com",
+  "username": "joao",
   "password": "myPassword123"
 }
 ```
 
-`password` must have between 8 and 72 characters. Registering an email that already exists answers `409`, and too many attempts answer `429`.
+`username` must have between 3 and 32 characters (letters, numbers, `_` and `-`) and `password` between 8 and 72. Registering a username that already exists answers `409`, invalid data answers `400`, and too many attempts answer `429`.
 
 Login response:
 
@@ -239,7 +242,7 @@ Login response:
   "token": "eyJhbGciOiJIUzI1NiJ9...",
   "user": {
     "id": 1,
-    "email": "joao@example.com"
+    "username": "joao"
   }
 }
 ```
