@@ -33,6 +33,7 @@ import { LoginForm } from '../components/account/LoginForm'
 import { RegisterForm } from '../components/account/RegisterForm'
 import { EmptyState } from '../components/notes/EmptyState'
 import { usePageContext } from '../hooks/usePageContext'
+import { uniqueTitle } from '../utils/noteTitle'
 
 // One status value instead of several booleans
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
@@ -92,7 +93,9 @@ export function NotesPage() {
 
   async function handleCreateNote() {
     try {
-      const newNote = await createLocalNote('New note', '')
+      const existing = await getLocalNotes()
+      const title = uniqueTitle('New note', existing.map((n) => n.title))
+      const newNote = await createLocalNote(title, '')
       setNotes(await getLocalNotes())
       setSelectedNoteId(newNote.id)
       setDrawerOpen(false)
