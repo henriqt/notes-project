@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NotesProjectAPI.Database;
 using NotesProjectAPI.Models;
+using System.Security.Claims;
 
 namespace NotesProjectAPI.Controllers
 {
@@ -18,43 +19,22 @@ namespace NotesProjectAPI.Controllers
             _databaseService = databaseService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+        // GET: api/Users/me
+        // Returns only the logged-in user's data (there is no listing: the app has no admin)
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
         {
             using var connection = _databaseService.CreateConnection();
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageSize < 1) pageSize = 10;
-            if (pageSize > 50) pageSize = 50;
+            var user = await connection.QueryFirstOrDefaultAsync<UserResponse>(
+                "SELECT Id, Username, CreatedAt FROM Users WHERE Id = @UserId",
+                new { UserId = userId });
 
-            var offset = (pageNumber - 1) * pageSize;
+            if (user == null)
+                return NotFound();
 
-            // Total users count
-            var totalCount = await connection.ExecuteScalarAsync<int>(
-                "SELECT COUNT(*) FROM Users"
-            );
-
-            // Paginated query
-            var users = await connection.QueryAsync<UserResponse>(
-                @"SELECT Id, Email, Name, CreatedAt
-                  FROM Users
-                  ORDER BY CreatedAt DESC
-                  LIMIT @PageSize OFFSET @Offset",
-                new { PageSize = pageSize, Offset = offset }
-            );
-
-            var result = new
-            {
-                pageNumber,
-                pageSize,
-                totalCount,
-                totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
-                items = users
-            };
-
-            return Ok(result);
+            return Ok(user);
         }
     }
 }

@@ -1,0 +1,113 @@
+:root {
+  /* Surfaces: darkest at the back, lighter as they come forward */
+  --bg: #0e1116;          /* app background (editor area) */
+  --bg-panel: #141820;    /* notes list, status bar, headers */
+  --bg-hover: #1b2029;    /* hover on items and buttons */
+  --bg-active: #232a36;   /* selected note, active tab */
+
+  /* Text */
+  --text: #9aa3b2;        /* normal text */
+  --text-h: #e8ebf2;      /* titles and editor text */
+  --text-dim: #5f6878;    /* hints, disabled things */
+
+  /* Borders and shadow */
+  --border: #262c38;
+  --shadow: rgba(0, 0, 0, 0.5) 0 10px 15px -3px, rgba(0, 0, 0, 0.3) 0 4px 6px -2px;
+
+  /* Accent (mint): easy to swap later */
+  --accent: #1fc7bf;
+  --accent-bg: rgba(94, 234, 212, 0.12);
+  --accent-border: rgba(94, 234, 212, 0.45);
+
+  --code-bg: #1a1f29;
+
+  /* Shape */
+  --radius: 6px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, Consolas, monospace;
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: dark; /* dark scrollbars and native inputs */
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+}
+
+/* #root fills the side panel and never scrolls the page: the panes scroll inside */
+#root {
+  width: 100%;
+  height: 100svh;
+  margin: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2 {
+  font-family: var(--heading);
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 118%;
+  letter-spacing: -0.24px;
+  margin: 0 0 8px;
+  @media (max-width: 1024px) {
+    font-size: 20px;
+  }
+}
+p {
+  margin: 0;
+}
+
+/* Base look for native controls, until each component gets its own style */
+button {
+  font: inherit;
+  color: var(--text-h);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+input:not([type='checkbox']),
+textarea {
+  font: inherit;
+  color: var(--text-h);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  box-sizing: border-box;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: 1px;
+}

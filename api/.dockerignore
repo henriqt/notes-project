@@ -3,3 +3,6 @@ obj/
 *.user
 .vs/
 .git/
+.env
+appsettings.Development.json
+appsettings.*.local.json

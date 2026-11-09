@@ -1,0 +1,142 @@
+.pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 8px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* Tabs are buttons: only the active one gets the accent line */
+.pane-tab {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  margin-bottom: -1px; /* sits over the header border */
+}
+
+.pane-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.editor-textarea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-h);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  padding: 8px;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* Note title, inside the Edit mode. The ".note-editor" prefix beats the global input style */
+.note-editor .note-title {
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 10px 8px;
+  font-family: var(--heading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: normal;
+  color: var(--text-h);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.note-editor .editor-title:focus-visible {
+  outline: none;
+  border-bottom-color: var(--accent-border);
+}
+
+/* Small icon button inside a pane header (bookmark star) */
+.pane-action {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--text);
+}
+
+.pane-action:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-h);
+}
+
+.pane-action[aria-pressed='true'],
+.pane-action[aria-pressed='true']:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+/* Bottom bar with the note counters, like and editor status bar */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  min-height: 26px;
+  padding: 0 12px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* The text area fills the whole pane, so a focus ring around it is just noise */
+.editor-textarea:focus-visible {
+  outline: none;
+}
+
+.note-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.pane-tabs {
+  align-self: stretch;
+  display: flex;
+  margin-right: auto;
+}
+
+.pane-tab:hover:not(:disabled) {
+  background: transparent;
+  color: var(--text);
+}
+
+.pane-tab.active {
+  color: var(--text-h);
+  border-bottom-color: var(--accent);
+}
+
+.preview-title {
+  overflow-wrap: break-word;
+}

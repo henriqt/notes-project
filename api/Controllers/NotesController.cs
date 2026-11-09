@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
 using NotesProjectAPI.Database;
 using NotesProjectAPI.Models;
 using System.Security.Claims;
@@ -11,6 +10,7 @@ namespace NotesProjectAPI.Controllers
 {
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ApiController]
+    [RequestSizeLimit(1_000_000)] // 1 MB max body, the default is ~30 MB
     [Route("api/[controller]")]
     public class NotesController : ControllerBase
     {
@@ -30,8 +30,8 @@ namespace NotesProjectAPI.Controllers
 
             var notes = await connection.QueryAsync<Note>(
                 "SELECT * FROM Notes WHERE UserId = @UserId ORDER BY CreatedAt DESC",
-                new { UserId = userId }
-);
+                new { UserId = userId });
+
             return Ok(notes);
         }
 
@@ -42,14 +42,12 @@ namespace NotesProjectAPI.Controllers
             using var connection = _databaseService.CreateConnection();
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
-            var note = await connection .QueryFirstOrDefaultAsync<Note>(
+            var note = await connection.QueryFirstOrDefaultAsync<Note>(
                 "SELECT * FROM Notes WHERE Id = @Id AND UserId = @UserId",
                 new { Id = id, UserId = userId });
 
             if (note == null)
-            {
                 return NotFound();
-            }
 
             return Ok(note);
         }
@@ -65,23 +63,23 @@ namespace NotesProjectAPI.Controllers
 
             var sql = @"
                 INSERT INTO Notes
-                (UserId, Title, Content, CreatedAt, UpdatedAt, IsFavorite)
+                (UserId, Title, Content, CreatedAt, UpdatedAt, IsBookmarked)
                 VALUES
-                (@UserId, @Title, @Content, @CreatedAt, @UpdatedAt, @IsFavorite);
+                (@UserId, @Title, @Content, @CreatedAt, @UpdatedAt, @IsBookmarked)
+                RETURNING Id";
 
-                SELECT last_insert_rowid()";
-
-            var id = await connection.ExecuteScalarAsync<long>(sql, new
+            var id = await connection.ExecuteScalarAsync<int>(sql, new
             {
                 UserId = userId,
                 note.Title,
                 note.Content,
                 CreatedAt = now,
                 UpdatedAt = now,
-                note.IsFavorite
+                note.IsBookmarked
             });
 
-            note.Id = (int)id;
+            note.Id = id;
+            note.UserId = userId;
             note.CreatedAt = now;
             note.UpdatedAt = now;
 
@@ -93,9 +91,7 @@ namespace NotesProjectAPI.Controllers
         public async Task<IActionResult> UpdateNote(int id, Note note)
         {
             if (id != note.Id)
-            {
                 return BadRequest();
-            }
 
             using var connection = _databaseService.CreateConnection();
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
@@ -106,8 +102,7 @@ namespace NotesProjectAPI.Controllers
                     Title = @Title,
                     Content = @Content,
                     UpdatedAt = @UpdatedAt,
-                    IsFavorite = @IsFavorite,
-                    Font = @Font
+                    IsBookmarked = @IsBookmarked
                 WHERE Id = @Id AND UserId = @UserId";
 
             var rowsAffected = await connection.ExecuteAsync(sql, new
@@ -115,16 +110,13 @@ namespace NotesProjectAPI.Controllers
                 note.Title,
                 note.Content,
                 UpdatedAt = DateTime.UtcNow,
-                note.IsFavorite,
-                note.Font,
+                note.IsBookmarked,
                 Id = id,
                 UserId = userId
             });
 
-            if(rowsAffected == 0)
-            {
+            if (rowsAffected == 0)
                 return NotFound();
-            }
 
             return NoContent();
         }
@@ -141,45 +133,9 @@ namespace NotesProjectAPI.Controllers
                 new { Id = id, UserId = userId });
 
             if (rowsAffected == 0)
-            {
                 return NotFound();
-            }
 
             return NoContent();
-        }
-
-        // PATCH: api/Notes/5/favorite
-        [HttpPatch("{id}/favorite")]
-        public async Task<IActionResult> ToggleFavorite(int id)
-        {
-            using var connection = _databaseService.CreateConnection();
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-
-            var note = await connection.QueryFirstOrDefaultAsync<Note>(
-                "SELECT * FROM Notes WHERE Id = @Id AND UserId = @UserId", new { Id = id, UserId = userId });
-
-            if (note == null)
-            {
-                return NotFound();
-            }
-
-            note.IsFavorite = !note.IsFavorite;
-            note.UpdatedAt = DateTime.UtcNow;
-
-            await connection.ExecuteAsync(@"
-                UPDATE Notes
-                SET IsFavorite = @IsFavorite,
-                    UpdatedAt = @UpdatedAt
-                WHERE Id = @Id AND UserId = @UserId",
-                new
-                {
-                    note.IsFavorite,
-                    note.UpdatedAt,
-                    note.Id,
-                    UserId = userId
-                });
-
-            return Ok(note);
         }
     }
 }

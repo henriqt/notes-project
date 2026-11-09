@@ -1,0 +1,186 @@
+.note-preview {
+  flex: 1;
+  min-width: 0; /* same fix as the editor pane: stop growing to fit long text */
+  min-height: 0;
+  overflow-y: auto; /* scrolls inside the pane instead of pushing the page taller */
+  padding: 8px;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--text-h);
+  font-family: var(--sans);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  text-align: left;
+}
+
+/* Task checkboxes: clickable, drawn with the accent color instead of the browser default */
+.note-preview input[type='checkbox'] {
+  appearance: none;
+  position: relative;
+  width: 14px;
+  height: 14px;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+  border: 1px solid var(--accent-border);
+  border-radius: 3px;
+}
+
+.note-preview input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.note-preview input[type='checkbox']:checked::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--bg);
+}
+
+/* No bullet next to a task item */
+.note-preview li:has(> input[type='checkbox']) {
+  list-style: none;
+}
+
+/* Spacing between blocks (the global p { margin: 0 } glued paragraphs together) */
+.note-preview p,
+.note-preview ul,
+.note-preview ol,
+.note-preview blockquote,
+.note-preview pre,
+.note-preview table {
+  margin: 0 0 0.8em;
+}
+
+/* Headings sized for a narrow panel, instead of the template sizes */
+.note-preview h1,
+.note-preview h2,
+.note-preview h3,
+.note-preview h4,
+.note-preview h5,
+.note-preview h6 {
+  margin: 1.2em 0 0.5em;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: normal;
+}
+
+.note-preview h1 { font-size: 2em; }
+.note-preview h2 { font-size: 1.5em; }
+.note-preview h3 { font-size: 1.25em; }
+.note-preview h4 { font-size: 1em; }
+.note-preview h5 { font-size: 0.875em; }
+.note-preview h6 { font-size: 0.85em; color: var(--text); }
+
+/* GitHub draws a line under h1 and h2 */
+.note-preview h1,
+.note-preview h2 {
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border);
+}
+
+/* No extra space at the very top and bottom of the preview */
+.note-preview > :first-child { margin-top: 0; }
+.note-preview > :last-child { margin-bottom: 0; }
+
+/* The default 40px list indent is too wide for the side panel */
+.note-preview ul,
+.note-preview ol {
+  padding-left: 1.4em;
+}
+
+.note-preview li > ul,
+.note-preview li > ol {
+  margin: 0.25em 0 0;
+}
+
+/* Inline code: the global code style is too big for running text */
+.note-preview code {
+  display: inline;
+  padding: 0.15em 0.4em;
+  font-family: var(--mono);
+  font-size: 0.85em;
+  line-height: inherit;
+  color: var(--text-h);
+  background: var(--code-bg);
+  border-radius: 4px;
+}
+
+/* Code blocks scroll sideways instead of stretching the whole preview */
+.note-preview pre {
+  padding: 10px 12px;
+  overflow-x: auto;
+  line-height: 1.45;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Inside a block the box comes from the pre, not from the code tag */
+.note-preview pre code {
+  padding: 0;
+  font-size: 0.85em;
+  white-space: pre;
+  background: transparent;
+  border-radius: 0;
+}
+
+.note-preview blockquote {
+  padding: 0 0.9em;
+  color: var(--text);
+  border-left: 3px solid var(--text-dim);
+}
+
+.note-preview blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.note-preview hr {
+  height: 1px;
+  margin: 1.2em 0;
+  background: var(--border);
+  border: 0;
+}
+
+/* Tables scroll sideways when they are wider than the panel */
+.note-preview table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.note-preview th,
+.note-preview td {
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+}
+
+.note-preview th {
+  font-weight: 600;
+}
+
+.note-preview tr:nth-child(2n) {
+  background: var(--bg-panel);
+}
+
+.note-preview img {
+  max-width: 100%;
+  height: auto;
+}
+
+.note-preview a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.note-preview a:hover {
+  text-decoration: underline;
+}

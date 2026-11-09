@@ -1,0 +1,47 @@
+.sync-toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: #9ca3af;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.sync-toggle[aria-checked='true'] {
+  background: var(--accent);
+}
+
+.sync-toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sync-toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-h);
+  transition: transform 0.2s;
+}
+
+.sync-toggle[aria-checked='true'] .sync-toggle-knob {
+  transform: translateX(20px);
+}
+
+/* Hover keeps the state color (the global button:hover would darken it) */
+.sync-toggle:hover:not(:disabled) {
+  background: #9ca3af;
+  filter: brightness(1.1);
+}
+
+.sync-toggle[aria-checked='true']:hover:not(:disabled) {
+  background: var(--accent);
+  filter: brightness(1.1);
+}
