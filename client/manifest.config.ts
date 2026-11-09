@@ -19,7 +19,7 @@ function getExtensionKey(): string | undefined {
 export default defineManifest({
   manifest_version: 3,
   name: 'Notes Project',
-  version: '1.0.0',
+  version: '0.1.0',
   key: getExtensionKey(),
   description: 'Markdown note editor with optional sync.',
   action: {
