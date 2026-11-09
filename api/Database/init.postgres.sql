@@ -1,6 +1,6 @@
 ﻿CREATE TABLE IF NOT EXISTS Users (
     Id            SERIAL PRIMARY KEY,
-    Email         TEXT NOT NULL UNIQUE,
+    Username      TEXT NOT NULL UNIQUE,
     PasswordHash  TEXT NOT NULL,
     CreatedAt     TIMESTAMPTZ NOT NULL DEFAULT now()
 );

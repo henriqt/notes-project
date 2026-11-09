@@ -7,8 +7,10 @@ interface RegisterFormProps {
   onSwitchToLogin: () => void
 }
 
+const USERNAME_REGEX = /^[a-z0-9_-]{3,32}$/
+
 export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProps) {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -17,8 +19,8 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
     e.preventDefault()
     setError('')
 
-    if (!email.trim().includes('@')) {
-      setError('Enter a valid email address.')
+    if (!USERNAME_REGEX.test(username.trim().toLowerCase())) {
+      setError('Username must be 3 to 32 characters: letters, numbers, _ and -.')
       return
     }
 
@@ -31,12 +33,12 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
       const response = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       })
 
       if (!response.ok) {
         // The API answers { message } for known errors (e.g. 409 when the
-        // email already exists), so show that instead of a generic text.
+        // username already exists), so show that instead of a generic text.
         const data = await response.json().catch(() => null)
         throw new Error(data?.message ?? 'Failed to create account')
       }
@@ -59,12 +61,14 @@ export function RegisterForm({ onRegistered, onSwitchToLogin }: RegisterFormProp
       <h3 className="auth-title">Create account</h3>
 
       <div className="auth-field">
-        <label htmlFor="register-email">Email</label>
+        <label htmlFor="register-username">Username</label>
         <input
-          id="register-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="register-username"
+          type="text"
+          autoComplete="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          maxLength={32}
           required
         />
       </div>

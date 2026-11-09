@@ -8,7 +8,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
@@ -17,8 +17,8 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
     e.preventDefault()
     setError('')
 
-    if (!email.trim() || !password) {
-      setError('Enter your email and password.')
+    if (!username.trim() || !password) {
+      setError('Enter your username and password.')
       return
     }
 
@@ -26,7 +26,7 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
       const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       })
 
       if (!response.ok) {
@@ -35,7 +35,7 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
           const data = await response.json().catch(() => null)
           throw new Error(data?.message ?? 'Too many attempts. Try again in a minute.')
         }
-        throw new Error('Invalid email or password')
+        throw new Error('Invalid username or password')
       }
 
       const data = await response.json()
@@ -57,12 +57,13 @@ export function LoginForm({ onLoggedIn, onSwitchToRegister }: LoginFormProps) {
       <h3 className="auth-title">Sign in</h3>
 
       <div className="auth-field">
-        <label htmlFor="login-email">Email</label>
+        <label htmlFor="login-username">Username</label>
         <input
-          id="login-email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          id="login-username"
+          type="text"
+          autoComplete="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
           required
         />
       </div>

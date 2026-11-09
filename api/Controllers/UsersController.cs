@@ -28,7 +28,7 @@ namespace NotesProjectAPI.Controllers
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
             var user = await connection.QueryFirstOrDefaultAsync<UserResponse>(
-                "SELECT Id, Email, CreatedAt FROM Users WHERE Id = @UserId",
+                "SELECT Id, Username, CreatedAt FROM Users WHERE Id = @UserId",
                 new { UserId = userId });
 
             if (user == null)

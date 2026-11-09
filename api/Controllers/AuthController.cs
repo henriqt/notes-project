@@ -8,6 +8,7 @@ using NotesProjectAPI.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace NotesProjectAPI.Controllers
 {
@@ -28,21 +29,23 @@ namespace NotesProjectAPI.Controllers
 
         private const int MinPasswordLength = 8;
         private const int MaxPasswordLength = 72; // BCrypt only uses the first 72 bytes
-        private const int MaxEmailLength = 254;
+        private const int MinUsernameLength = 3;
+        private const int MaxUsernameLength = 32;
+        private static readonly Regex UsernameRegex = new("^[a-z0-9_-]+$");
 
-        // "Foo@Bar.com " and "foo@bar.com" are the same account
-        private static string NormalizeEmail(string? email)
+        // "Foo " and "foo" are the same account
+        private static string NormalizeUsername(string? username)
         {
-            return (email ?? string.Empty).Trim().ToLowerInvariant();
+            return (username ?? string.Empty).Trim().ToLowerInvariant();
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
-            var email = NormalizeEmail(request.Email);
+            var username = NormalizeUsername(request.Username);
 
-            if (string.IsNullOrWhiteSpace(email) || email.Length > MaxEmailLength || !email.Contains('@'))
-                return BadRequest(new { message = "A valid email is required." });
+            if (username.Length < MinUsernameLength || username.Length > MaxUsernameLength || !UsernameRegex.IsMatch(username))
+                return BadRequest(new { message = $"Username must be {MinUsernameLength} to {MaxUsernameLength} characters: letters, numbers, _ and -." });
 
             // Checked here too because the API can be called directly
             var password = request.Password ?? string.Empty;
@@ -53,21 +56,21 @@ namespace NotesProjectAPI.Controllers
 
             // Case-insensitive, so older accounts still match
             var existing = await connection.QueryFirstOrDefaultAsync<User>(
-                "SELECT * FROM Users WHERE LOWER(Email) = @Email",
-                new { Email = email });
+                "SELECT * FROM Users WHERE LOWER(Username) = @Username",
+                new { Username = username });
 
             if (existing != null)
-                return Conflict(new { message = "An account with this email already exists." });
+                return Conflict(new { message = "An account with this username already exists." });
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
             var sql = @"
-                INSERT INTO Users (Email, PasswordHash, CreatedAt)
-                VALUES (@Email, @PasswordHash, @CreatedAt)";
+                INSERT INTO Users (Username, PasswordHash, CreatedAt)
+                VALUES (@Username, @PasswordHash, @CreatedAt)";
 
             await connection.ExecuteAsync(sql, new
             {
-                Email = email,
+                Username = username,
                 PasswordHash = passwordHash,
                 CreatedAt = DateTime.UtcNow
             });
@@ -78,7 +81,7 @@ namespace NotesProjectAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
-            var email = NormalizeEmail(request.Email);
+            var username = NormalizeUsername(request.Username);
 
             // A null password would make BCrypt throw (500)
             if (string.IsNullOrEmpty(request.Password))
@@ -87,8 +90,8 @@ namespace NotesProjectAPI.Controllers
             using var connection = _databaseService.CreateConnection();
 
             var user = await connection.QueryFirstOrDefaultAsync<User>(
-                "SELECT * FROM Users WHERE LOWER(Email) = @Email",
-                new { Email = email });
+                "SELECT * FROM Users WHERE LOWER(Username) = @Username",
+                new { Username = username });
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return Unauthorized(new { message = "Invalid credentials" });
@@ -98,7 +101,7 @@ namespace NotesProjectAPI.Controllers
             return Ok(new
             {
                 token,
-                user = new { user.Id, user.Email }
+                user = new { user.Id, user.Username }
             });
         }
 
@@ -113,7 +116,7 @@ namespace NotesProjectAPI.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Name, user.Username)
             };
 
             var token = new JwtSecurityToken(
