@@ -14,6 +14,8 @@ import {
   deleteFromTrash,
   emptyTrash,
   addImportedNotes,
+  getUiState,
+  saveUiState,
   type TrashedNote,
 } from '../api/localStore'
 import type { Note, NoteSource } from '../types/note'
@@ -473,9 +475,18 @@ export function NotesPage() {
       try {
         const data = await getLocalNotes()
         const trashed = await getTrash()
+        const ui = await getUiState()
         if (cancelled) return
         setNotes(data)
         setTrash(trashed)
+
+        if (ui) {
+          // Only reopen a note that still exists
+          setSelectedNoteId(data.some((n) => n.id === ui.selectedNoteId) ? ui.selectedNoteId : null)
+          setEditorMode(ui.editorMode)
+          setDrawerOpen(ui.drawerOpen)
+          setTrashOpen(ui.trashOpen)
+        }
 
         const enabled = await getSyncEnabled()
         if (cancelled) return
@@ -501,6 +512,13 @@ export function NotesPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Remembers the last screen, so the side panel reopens where the user left it.
+  // Waits for loading to end, or the defaults would overwrite the saved screen.
+  useEffect(() => {
+    if (loading) return
+    saveUiState({ selectedNoteId, editorMode, drawerOpen, trashOpen })
+  }, [loading, selectedNoteId, editorMode, drawerOpen, trashOpen])
 
   // 401: authFetch fires this event, so the toggle goes off.
   // The notice below tells the user to log in again.

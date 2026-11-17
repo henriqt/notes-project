@@ -7,6 +7,7 @@ const TOMBSTONES_KEY = 'deletedNotes'
 const SYNCED_USER_KEY = 'syncedUserId'
 const SYNC_ENABLED_KEY = 'syncEnabled'
 const TRASH_KEY = 'trashedNotes'
+const UI_STATE_KEY = 'uiState'
 
 // Notes deleted locally after being synced. Without this, the sync would bring them back.
 export interface DeletedNote {
@@ -18,6 +19,14 @@ export interface DeletedNote {
 export interface TrashedNote {
   note: Note
   deletedAt: string
+}
+
+// Last screen the user was on, so the side panel reopens exactly there
+export interface UiState {
+  selectedNoteId: number | null
+  editorMode: 'edit' | 'preview' | null
+  drawerOpen: boolean
+  trashOpen: boolean
 }
 
 export async function getLocalNotes(): Promise<Note[]> {
@@ -221,6 +230,23 @@ export async function addImportedNotes(items: BackupNote[]): Promise<ImportResul
 
   if (added.length > 0) await saveLocalNotes([...added, ...existing])
   return { imported: added.length, skipped }
+}
+
+export async function getUiState(): Promise<UiState | null> {
+  const result = await chrome.storage.local.get(UI_STATE_KEY)
+  const raw = result[UI_STATE_KEY] as Partial<UiState> | undefined
+  if (!raw || typeof raw !== 'object') return null
+
+  return {
+    selectedNoteId: typeof raw.selectedNoteId === 'number' ? raw.selectedNoteId : null,
+    editorMode: raw.editorMode === 'edit' || raw.editorMode === 'preview' ? raw.editorMode : null,
+    drawerOpen: typeof raw.drawerOpen === 'boolean' ? raw.drawerOpen : true,
+    trashOpen: raw.trashOpen === true,
+  }
+}
+
+export async function saveUiState(state: UiState): Promise<void> {
+  await chrome.storage.local.set({ [UI_STATE_KEY]: state })
 }
 
 // Clears everything stored on this device. Synced notes stay on the server.
