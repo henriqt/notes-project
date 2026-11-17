@@ -77,6 +77,7 @@
 }
 
 .drawer-title {
+  flex: 1;
   font-size: 0.85rem;
   color: var(--text-h);
 }
@@ -121,4 +122,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
+}
+
+.drawer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.drawer-header-actions .pane-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

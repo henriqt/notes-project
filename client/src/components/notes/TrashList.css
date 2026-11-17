@@ -1,0 +1,83 @@
+.trash-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.trash-title {
+  margin-right: auto;
+  font-size: 0.85rem;
+  color: var(--text-h);
+}
+
+.trash-empty-btn {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.trash-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.trash-empty {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.trash-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trash-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trash-item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trash-item-title {
+  color: var(--text-h);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trash-item-date {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.trash-restore {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+
+.trash-delete {
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+}

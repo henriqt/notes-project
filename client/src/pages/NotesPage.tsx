@@ -9,6 +9,11 @@ import {
   clearLocalData,
   getSyncEnabled,
   saveSyncEnabled,
+  getTrash,
+  restoreFromTrash,
+  deleteFromTrash,
+  emptyTrash,
+  type TrashedNote,
 } from '../api/localStore'
 import type { Note, NoteSource } from '../types/note'
 import { NoteList } from '../components/notes/NoteList'
@@ -34,6 +39,7 @@ import { RegisterForm } from '../components/account/RegisterForm'
 import { EmptyState } from '../components/notes/EmptyState'
 import { usePageContext } from '../hooks/usePageContext'
 import { uniqueTitle } from '../utils/noteTitle'
+import { TrashList } from '../components/notes/TrashList'
 
 // One status value instead of several booleans
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
@@ -73,6 +79,8 @@ export function NotesPage() {
   const [drawerOpen, setDrawerOpen] = useState(true)
   // Remembers the last Edit/Preview choice, so switching notes or a sync reload keeps it
   const [editorMode, setEditorMode] = useState<EditorMode | null>(null)
+  const [trash, setTrash] = useState<TrashedNote[]>([])
+  const [trashOpen, setTrashOpen] = useState(false)
 
   // Timers and listeners read the ref, because their state would be stale
   const syncEnabledRef = useRef(false)
@@ -138,10 +146,40 @@ export function NotesPage() {
   async function handleDeleteNote(id: number) {
     try {
       await deleteLocalNote(id)
+      setTrash(await getTrash())
       setNotes((prev) => prev.filter((n) => n.id !== id))
       if (selectedNoteId === id) setSelectedNoteId(null)
     } catch {
       setError('Failed to delete note')
+    }
+  }
+
+  async function handleRestoreNote(id: number) {
+    try {
+      await restoreFromTrash(id)
+      setNotes(await getLocalNotes())
+      setTrash(await getTrash())
+      scheduleAutoSync()
+    } catch {
+      setError('Failed to restore note')
+    }
+  }
+
+  async function handleDeleteForever(id: number) {
+    try {
+      await deleteFromTrash(id)
+      setTrash(await getTrash())
+    } catch {
+      setError('Failed to delete note')
+    }
+  }
+
+  async function handleEmptyTrash() {
+    try {
+      await emptyTrash()
+      setTrash([])
+    } catch {
+      setError('Failed to empty the trash')
     }
   }
 
@@ -178,6 +216,7 @@ export function NotesPage() {
       try {
         await clearLocalData()
         setNotes([])
+        setTrash([])
         setSelectedNoteId(null)
         setSyncVersion((v) => v + 1)
       } catch {
@@ -386,8 +425,10 @@ export function NotesPage() {
     async function init() {
       try {
         const data = await getLocalNotes()
+        const trashed = await getTrash()
         if (cancelled) return
         setNotes(data)
+        setTrash(trashed)
 
         const enabled = await getSyncEnabled()
         if (cancelled) return
@@ -504,7 +545,18 @@ export function NotesPage() {
           {error && <p role="alert">{error}</p>}
           {authNotice && !isAuthenticated && <p role="status">{authNotice}</p>}
 
-          {authView && !isAuthenticated ? (
+          {trashOpen ? (
+            <TrashList
+              items={trash}
+              onRestore={handleRestoreNote}
+              onDeleteForever={handleDeleteForever}
+              onEmpty={handleEmptyTrash}
+              onBack={() => {
+                setTrashOpen(false)
+                setDrawerOpen(true)
+              }}
+            />
+          ) : authView && !isAuthenticated ? (
             <div className="auth-screen">
               <div className="pane-header">
                 <button
@@ -575,6 +627,19 @@ export function NotesPage() {
                     ✕
                   </button>
                   <span className="drawer-title">Notes</span>
+                  <div className="drawer-header-actions">
+                    <button
+                      className="pane-action"
+                      onClick={() => {
+                        setTrashOpen(true)
+                        setDrawerOpen(false)
+                      }}
+                      aria-label="Recently deleted"
+                      title={trash.length > 0 ? `Recently deleted (${trash.length})` : 'Recently deleted'}
+                    >
+                      🗑
+                    </button>
+                  </div>
                 </div>
 
                 {page && (
