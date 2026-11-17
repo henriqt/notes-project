@@ -75,6 +75,9 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .note-list-section-title:first-child {

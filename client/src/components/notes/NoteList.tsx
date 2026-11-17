@@ -3,23 +3,17 @@ import type { Note } from '../../types/note'
 import type { PageContext } from '../../hooks/usePageContext'
 import './NoteList.css'
 
-// Same page = same url, ignoring the #fragment
-function withoutHash(url: string): string {
+// Hostname without the "www." prefix, so www.site.com and site.com count as the same site
+function getSite(url: string): string | null {
   try {
-    const parsed = new URL(url)
-    parsed.hash = ''
-    return parsed.toString()
-  } catch {
-    return url
-  }
-}
-
-function getHostname(url: string): string | null {
-  try {
-    return new URL(url).hostname
+    return new URL(url).hostname.replace(/^www\./, '')
   } catch {
     return null
   }
+}
+
+function byUpdatedDesc(a: Note, b: Note): number {
+  return Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
 }
 
 interface NoteListProps {
@@ -43,27 +37,41 @@ export function NoteList({ notes, page, selectedNoteId, onSelectNote, onCreateNo
       (note.title.toLowerCase().includes(query) || note.content.toLowerCase().includes(query)),
   )
 
-  // Each note goes in only one section: this page, this site, or the rest
-  const pageNotes: Note[] = []
-  const siteNotes: Note[] = []
-  const otherNotes: Note[] = []
+  // Notes grouped by the site they were created on. Notes without a site go last.
+  const siteGroups = new Map<string, Note[]>()
+  const looseNotes: Note[] = []
 
   for (const note of filteredNotes) {
-    if (page && note.source && withoutHash(note.source.url) === withoutHash(page.url)) {
-      pageNotes.push(note)
-    } else if (page && note.source && getHostname(note.source.url) === page.domain) {
-      siteNotes.push(note)
-    } else {
-      otherNotes.push(note)
+    const site = note.source ? getSite(note.source.url) : null
+
+    if (!site) {
+      looseNotes.push(note)
+      continue
     }
+
+    const group = siteGroups.get(site)
+    if (group) group.push(note)
+    else siteGroups.set(site, [note])
   }
 
-  // An empty section is not shown
-  const sections = [
-    { title: 'This page', notes: pageNotes },
-    { title: 'This site', notes: siteNotes },
-    { title: 'All notes', notes: otherNotes },
-  ].filter((section) => section.notes.length > 0)
+  const currentSite = page ? getSite(page.url) : null
+
+  // The site you are on comes first, then the others by the most recently edited note
+  const sections = [...siteGroups.entries()]
+    .map(([site, siteNotes]) => ({
+      site,
+      title: site === currentSite ? 'This site' : site,
+      notes: siteNotes.sort(byUpdatedDesc),
+    }))
+    .sort((a, b) => {
+      if (a.site === currentSite) return -1
+      if (b.site === currentSite) return 1
+      return byUpdatedDesc(a.notes[0], b.notes[0])
+    })
+
+  if (looseNotes.length > 0) {
+    sections.push({ site: '', title: 'Other notes', notes: looseNotes })
+  }
 
   function renderNote(note: Note) {
     return (
@@ -114,7 +122,7 @@ export function NoteList({ notes, page, selectedNoteId, onSelectNote, onCreateNo
       <div className="note-list-scroll">
         {sections.map((section) => (
           <section key={section.title}>
-            {sections.length > 1 && <h3 className="note-list-section-title">{section.title}</h3>}
+            <h3 className="note-list-section-title">{section.title}</h3>
             <ul className="note-list-notes-list">{section.notes.map(renderNote)}</ul>
           </section>
         ))}
