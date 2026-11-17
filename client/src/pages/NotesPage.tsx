@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import './NotesPage.css'
 import {
   getLocalNotes,
@@ -13,6 +13,7 @@ import {
   restoreFromTrash,
   deleteFromTrash,
   emptyTrash,
+  addImportedNotes,
   type TrashedNote,
 } from '../api/localStore'
 import type { Note, NoteSource } from '../types/note'
@@ -39,7 +40,9 @@ import { RegisterForm } from '../components/account/RegisterForm'
 import { EmptyState } from '../components/notes/EmptyState'
 import { usePageContext } from '../hooks/usePageContext'
 import { uniqueTitle } from '../utils/noteTitle'
+import { downloadBackup, parseBackup, MAX_BACKUP_BYTES } from '../utils/backup'
 import { TrashList } from '../components/notes/TrashList'
+import { BackupModal } from '../components/common/BackupModal'
 
 // One status value instead of several booleans
 type SyncStatus = 'idle' | 'syncing' | 'done' | 'offline' | 'error'
@@ -81,6 +84,10 @@ export function NotesPage() {
   const [editorMode, setEditorMode] = useState<EditorMode | null>(null)
   const [trash, setTrash] = useState<TrashedNote[]>([])
   const [trashOpen, setTrashOpen] = useState(false)
+  const [backupMenuOpen, setBackupMenuOpen] = useState(false)
+  // Result of the last backup import, shown in the drawer for a few seconds
+  const [importNotice, setImportNotice] = useState('')
+  const importInputRef = useRef<HTMLInputElement>(null)
 
   // Timers and listeners read the ref, because their state would be stale
   const syncEnabledRef = useRef(false)
@@ -181,6 +188,46 @@ export function NotesPage() {
     } catch {
       setError('Failed to empty the trash')
     }
+  }
+
+  async function handleBackup() {
+    try {
+      const current = await getLocalNotes()
+      if (current.length === 0) {
+        setImportNotice('No notes to back up')
+        window.setTimeout(() => setImportNotice(''), 6000)
+        return
+      }
+      downloadBackup(current)
+    } catch {
+      setError('Failed to save backup')
+    }
+  }
+
+  async function handleImportFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // lets the user pick the same file again
+    if (!file) return
+
+    let message: string
+    try {
+      if (file.size > MAX_BACKUP_BYTES) throw new Error('This file is too big to be a notes backup.')
+
+      const { notes: parsed, invalid } = parseBackup(await file.text())
+      const { imported, skipped } = await addImportedNotes(parsed)
+
+      setNotes(await getLocalNotes())
+      scheduleAutoSync()
+
+      message = `Imported ${imported} ${imported === 1 ? 'note' : 'notes'}`
+      if (skipped > 0) message += `, skipped ${skipped} duplicate${skipped === 1 ? '' : 's'}`
+      if (invalid > 0) message += `, ${invalid} invalid`
+    } catch (err) {
+      message = err instanceof Error ? err.message : 'Failed to import backup'
+    }
+
+    setImportNotice(message)
+    window.setTimeout(() => setImportNotice(''), 6000)
   }
 
   async function handleToggleBookmark(id: number) {
@@ -630,6 +677,14 @@ export function NotesPage() {
                   <div className="drawer-header-actions">
                     <button
                       className="pane-action"
+                      onClick={() => setBackupMenuOpen(true)}
+                      aria-label="Backup"
+                      title="Backup"
+                    >
+                      ↕
+                    </button>
+                    <button
+                      className="pane-action"
                       onClick={() => {
                         setTrashOpen(true)
                         setDrawerOpen(false)
@@ -666,6 +721,19 @@ export function NotesPage() {
                   onCreateNote={handleCreateNote}
                   onDeleteNote={handleDeleteNote}
                 />
+
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept=".json,application/json"
+                  hidden
+                  onChange={handleImportFile}
+                />
+                {importNotice && (
+                  <p className="drawer-notice" role="status">
+                    {importNotice}
+                  </p>
+                )}
 
                 <p className="drawer-user">
                   {isAuthenticated ? `Signed in as ${getTokenUsername() ?? 'unknown'}` : 'Not signed in'}
@@ -711,6 +779,20 @@ export function NotesPage() {
           unsyncedCount={logoutPrompt.unsyncedCount}
           onConfirm={handleLogoutConfirmed}
           onCancel={() => setLogoutPrompt(null)}
+        />
+      )}
+
+      {backupMenuOpen && (
+        <BackupModal
+          onSave={() => {
+            setBackupMenuOpen(false)
+            handleBackup()
+          }}
+          onImport={() => {
+            setBackupMenuOpen(false)
+            importInputRef.current?.click()
+          }}
+          onCancel={() => setBackupMenuOpen(false)}
         />
       )}
     </div>

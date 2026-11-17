@@ -131,6 +131,12 @@
   margin-left: auto;
 }
 
+.drawer-notice {
+  margin: 0 8px 4px;
+  font-size: 0.7rem;
+  color: var(--accent);
+}
+
 .drawer-header-actions .pane-action {
   display: inline-flex;
   align-items: center;

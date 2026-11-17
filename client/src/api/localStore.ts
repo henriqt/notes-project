@@ -1,4 +1,6 @@
 import type { Note, NoteSource } from '../types/note'
+import type { BackupNote } from '../utils/backup'
+import { uniqueTitle } from '../utils/noteTitle'
 
 const STORAGE_KEY = 'notes'
 const TOMBSTONES_KEY = 'deletedNotes'
@@ -169,6 +171,56 @@ export async function deleteFromTrash(id: number): Promise<void> {
 
 export async function emptyTrash(): Promise<void> {
   await saveTrash([])
+}
+
+export interface ImportResult {
+  imported: number
+  skipped: number // exact copies of notes that already exist
+}
+
+// Adds the notes of a backup as new local notes (no serverId, so the next sync uploads them).
+// A note with the same title and content as an existing one is skipped,
+// so importing the same file twice doesn't duplicate anything.
+export async function addImportedNotes(items: BackupNote[]): Promise<ImportResult> {
+  const existing = await getLocalNotes()
+
+  const seen = new Set(existing.map((n) => JSON.stringify([n.title, n.content])))
+  const titles = existing.map((n) => n.title)
+  const usedIds = new Set(existing.map((n) => n.id))
+
+  const added: Note[] = []
+  let nextId = Date.now()
+  let skipped = 0
+
+  for (const item of items) {
+    const key = JSON.stringify([item.title, item.content])
+    if (seen.has(key)) {
+      skipped++
+      continue
+    }
+    seen.add(key)
+
+    // Same title but different content: "Title (1)"
+    const title = uniqueTitle(item.title, titles)
+    titles.push(title)
+
+    while (usedIds.has(nextId)) nextId++
+    usedIds.add(nextId)
+
+    added.push({
+      id: nextId,
+      title,
+      content: item.content,
+      isBookmarked: item.isBookmarked,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      userId: 0, // unused until sync
+      source: item.source,
+    })
+  }
+
+  if (added.length > 0) await saveLocalNotes([...added, ...existing])
+  return { imported: added.length, skipped }
 }
 
 // Clears everything stored on this device. Synced notes stay on the server.
