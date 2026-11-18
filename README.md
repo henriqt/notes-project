@@ -10,13 +10,27 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 
 - Lives in the browser's side panel: click the toolbar icon to open it next to any page.
 - Markdown editor with an Edit / Preview toggle, one pane at a time, made for a narrow panel. The chosen mode is kept when a sync reloads the editor.
+- The panel reopens on the last screen you used: the open note, Edit or Preview, the drawer, and the trash. This is saved on the device.
 - Auto-save after 1 second of inactivity.
-- Notes drawer with search (title and content), a bookmark filter, and per-note delete.
+- Notes drawer with search (title and content), a bookmark filter, and per-note delete. A deleted note goes to the trash.
 - The drawer shows who is logged in above the sync toggle ("Signed in as ...", or "Not signed in").
 - New notes with a repeated title are numbered: `New note`, `New note (1)`, `New note (2)`.
 - Bookmarks (star) on each note.
 - Status bar with live line and character counters.
 - Size limits match the API: 200 characters for titles, 200,000 for content.
+
+### Trash
+
+- Deleting a note moves it to **Recently deleted**, opened from the trash button in the drawer header.
+- Notes stay there until you restore them or delete them for good. There is no time limit, and **Empty** clears everything after a confirmation.
+- The trash lives only on the device and is not synced. A synced note deleted here is still removed from the server on the next sync. If you restore it after that, it comes back as a new note.
+
+### Backup
+
+- The backup button in the drawer header opens a modal to save or import a backup.
+- **Save backup** downloads all notes as `notes-backup-YYYY-MM-DD.json`, with title, content, bookmark, dates, and page link. Ids and sync data are left out.
+- **Import backup** adds the notes of a file as new local notes, so the next sync uploads them. Exact copies (same title and content) are skipped, and the same title with different content is numbered, like `Title (1)`.
+- Files are checked before use: a supported version, up to 20 MB, and the same size limits as the API. Invalid entries are skipped and counted in the result message.
 
 ### Markdown Preview
 
@@ -30,7 +44,7 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 
 - The **+** button in the drawer creates a note titled after the page in the active tab.
 - The context menu item **Save selection as note** saves the selected text as a Markdown quote, followed by a link to the page.
-- The drawer groups notes into **This page**, **This site**, and **All notes**, based on the page in the active tab.
+- The drawer groups notes by the site where they were created, and each section is titled with the site name. The site of the active tab comes first as **This site**, the other sites follow by most recently edited note, and notes with no site come last under **Other notes**.
 
 ### Local-First Storage and Optional Sync
 
@@ -47,7 +61,7 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 
 - Login and registration live inside the side panel (the **Log in** button in the drawer footer).
 - Accounts use a username instead of an email: 3 to 32 characters, with letters, numbers, `_` and `-`. Usernames are trimmed and lowercased, so `Foo` and `foo` are the same account.
-- Logout asks whether to also clear the notes stored on the device, and shows how many have unsynced changes.
+- Logout asks whether to also clear the notes and the trash stored on the device, and shows how many notes have unsynced changes.
 - When the session expires, sync is turned off and a notice asks the user to log in again.
 
 ### Security
@@ -59,6 +73,7 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 - Every note query is filtered by the logged-in user.
 - CORS is restricted to a single `chrome-extension://` origin. Secrets stay out of Git (`.env`, `appsettings.Development.json`, `*.pem`).
 - The `tabs` permission lets the panel read the URL and title of the active tab. The page URL of a note stays in `chrome.storage.local` and is only used to group the drawer. The quote and the link written inside a note are part of its text, so they are sent to your API when sync is on. Sync sends nothing else about the page.
+- Backup files are not trusted: every field is checked and size limited before import. A backup holds only notes, never a token or account data.
 
 ### Architecture
 
@@ -249,7 +264,7 @@ Login response:
 
 ### Local Note (extension)
 
-Notes in `chrome.storage.local` carry a few extra fields. `serverId` and `baseHash` only exist after the first sync, and `source` never leaves the device.
+Notes in `chrome.storage.local` carry a few extra fields. `serverId` and `baseHash` only exist after the first sync. `source` is never sent to the API, but a backup file includes it.
 
 ```json
 {
@@ -291,8 +306,11 @@ The project follows GitHub Flavored Markdown. Features without a GitHub equivale
 - Side panel UI with a notes drawer, search, and bookmarks
 - Notes anchored to pages, with the **+** button and the context menu
 - Save selection as note, as a quote with a link to the page
-- Drawer sections for the current page, the current site, and all notes
+- Drawer grouped by the site where each note was created, with the current site first
 - Optional sync with conflict resolution and deletion confirmation
+- Trash with restore for deleted notes
+- Backup export and import as JSON
+- Side panel reopens on the last screen
 - Login and registration inside the side panel
 - JWT API with PostgreSQL, rate limiting, and input validation
 
