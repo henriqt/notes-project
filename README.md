@@ -39,6 +39,7 @@ A local-first Markdown notes extension that lives in the browser's side panel, w
 - Single line breaks render as line breaks.
 - Links to `http` and `https` open in a new tab, so the side panel never navigates away.
 - Raw HTML in a note is sanitized before it is rendered.
+- **Heading links**: titles get GitHub-style ids, and a link like `[go](#my-title)` scrolls to the title inside the preview.
 
 ### Notes From the Web
 
@@ -303,6 +304,7 @@ The project follows GitHub Flavored Markdown. Features without a GitHub equivale
 - Local-first Markdown editor with an Edit / Preview toggle
 - Markdown preview styled like GitHub
 - Task lists with clickable checkboxes
+- Heading ids and `#` links inside the preview
 - Side panel UI with a notes drawer, search, and bookmarks
 - Notes anchored to pages, with the **+** button and the context menu
 - Save selection as note, as a quote with a link to the page
@@ -317,7 +319,6 @@ The project follows GitHub Flavored Markdown. Features without a GitHub equivale
 ### Planned
 
 - Docker setup for the full app (API and database with a single `docker compose up`)
-- Heading ids and `#` links inside the preview
 - More GitHub Markdown in the preview: alerts, footnotes, emoji shortcodes, syntax highlighting, math, and diagrams
 - Related notes when you return to a page
 - Runnable HTTP blocks and smart paste formatting for developer notes
